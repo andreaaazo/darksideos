@@ -1,0 +1,134 @@
+name: Bug Report
+description: Report a reproducible defect or regression
+title: "[Bug]: "
+labels: [ "bug" ]
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thank you for reporting a bug.
+      Please provide as much detail as possible to help us investigate and reproduce the issue.
+
+- type: input
+  id: summary
+  attributes:
+    label: Summary
+    description: Provide a short and clear summary of the bug
+    placeholder: "Example: Bluetooth pairing state lost after reboot despite impermanence config"
+  validations:
+    required: true
+
+- type: textarea
+  id: problem
+  attributes:
+    label: Current Behavior
+    description: Describe what is happening now
+    placeholder: Explain the observed behavior
+  validations:
+    required: true
+
+- type: textarea
+  id: expected
+  attributes:
+    label: Expected Behavior
+    description: Describe what should happen instead
+    placeholder: Explain the expected behavior
+  validations:
+    required: true
+
+- type: textarea
+  id: steps
+  attributes:
+    label: Steps to Reproduce
+    description: Provide exact steps to reproduce the issue
+    placeholder: |
+      1. Apply configuration with `nixos-rebuild switch --flake .#<hostname>`
+      2. Reboot
+      3. Observe ...
+  validations:
+    required: true
+
+- type: dropdown
+  id: host
+  attributes:
+    label: Host
+    description: Which machine is affected?
+    options:
+    - starkiller (Desktop)
+    - vader (Laptop)
+    - All hosts
+    - New host (specify in environment)
+  validations:
+    required: true
+
+- type: dropdown
+  id: area
+  attributes:
+    label: Affected Area
+    description: Select the area most related to the issue
+    multiple: true
+    options:
+    - Flake / Inputs
+    - Shared Module — core
+    - Shared Module — graphical
+    - Shared Module — hardware
+    - Shared Module — home
+    - Shared Module — impermanence
+    - Disk Layout (Disko)
+    - Boot / systemd-boot
+    - NVIDIA driver
+    - Networking / Bluetooth
+    - Fonts
+    - CI / GitHub Actions
+    - Documentation
+    - Other
+  validations:
+    required: true
+
+- type: dropdown
+  id: severity
+  attributes:
+    label: Severity
+    description: Select the impact level
+    options:
+    - Low — cosmetic or minor inconvenience
+    - Medium — feature impaired but workaround exists
+    - High — core functionality broken
+    - Critical — system fails to boot or data loss
+  validations:
+    required: true
+
+- type: textarea
+  id: environment
+  attributes:
+    label: Environment
+    description: Provide environment details
+    placeholder: |
+      - Nixpkgs commit: (from `nix flake metadata`)
+      - Kernel: (from `uname -r`)
+      - NVIDIA driver: (from `nvidia-smi`)
+      - Generation: (from `nixos-rebuild list-generations | head -1`)
+  validations:
+    required: false
+
+- type: textarea
+  id: logs
+  attributes:
+    label: Logs, Screenshots, or Additional Context
+    description: |
+      Paste relevant logs, attach screenshots, or add any helpful context.
+      Useful commands: `journalctl -b -p err`, `systemctl --failed`, `dmesg | tail -50`
+  validations:
+    required: false
+
+- type: checkboxes
+  id: checks
+  attributes:
+    label: Validation
+    options:
+    - label: I searched for existing issues before creating this report
+      required: true
+    - label: I verified the issue persists after `nixos-rebuild switch --flake .#<hostname>`
+      required: true
+    - label: I provided enough detail to reproduce the issue
+      required: true

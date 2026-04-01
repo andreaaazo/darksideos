@@ -1,0 +1,10 @@
+result
+result-*
+.direnv/
+
+.DS_Store
+*.log
+*.swp
+*.swo
+*.bak
+*.tmp

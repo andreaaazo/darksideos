@@ -1,0 +1,24 @@
+name: Commit Messages Compliance
+
+on:
+    pull_request:
+        types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+    contents: read
+    pull-requests: read
+
+jobs:
+    lint-commits:
+        name: Validate Commit Messages
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # Necessary to read all history of commits of PR
+            - name: Check Commit Messages
+              uses: wagoid/commitlint-github-action@v6
+              with:
+                  configFile: commitlint.config.mjs
+                  failOnWarnings: false # Fails if messages are not following the Conventional Commits format

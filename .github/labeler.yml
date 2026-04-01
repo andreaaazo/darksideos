@@ -1,0 +1,76 @@
+flake:
+- changed-files:
+  - any-glob-to-any-file:
+    - "flake.nix"
+    - "flake.lock"
+
+host:starkiller:
+- changed-files:
+  - any-glob-to-any-file:
+    - "hosts/starkiller/**"
+
+host:vader:
+- changed-files:
+  - any-glob-to-any-file:
+    - "hosts/vader/**"
+
+module:core:
+- changed-files:
+  - any-glob-to-any-file:
+    - "shared-modules/core/**"
+
+module:graphics:
+- changed-files:
+  - any-glob-to-any-file:
+    - "shared-modules/graphics/**"
+
+module:hardware:
+- changed-files:
+  - any-glob-to-any-file:
+    - "shared-modules/hardware/**"
+
+module:home:
+- changed-files:
+  - any-glob-to-any-file:
+    - "shared-modules/home/**"
+
+module:impermanence:
+- changed-files:
+  - any-glob-to-any-file:
+    - "shared-modules/impermanence/**"
+
+fonts:
+- changed-files:
+  - any-glob-to-any-file:
+    - "shared-modules/graphics/fonts/**"
+    - "**/*.otf"
+    - "**/*.ttf"
+    - "**/*.ttc"
+
+ci:
+- changed-files:
+  - any-glob-to-any-file:
+    - ".github/**"
+
+docs:
+- changed-files:
+  - any-glob-to-any-file:
+    - "docs/**"
+    - "**/*.md"
+
+tests:
+- changed-files:
+  - any-glob-to-any-file:
+    - "tests/**"
+
+disk:
+- changed-files:
+  - any-glob-to-any-file:
+    - "hosts/**/disk.nix"
+
+security:
+- changed-files:
+  - any-glob-to-any-file:
+    - "shared-modules/core/users.nix"
+    - "shared-modules/impermanence/**"
+    - "**/*secret*"

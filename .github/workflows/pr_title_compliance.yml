@@ -1,0 +1,36 @@
+name: PR Title Compliance
+
+on:
+    pull_request:
+        types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+    contents: read
+    pull-requests: write
+    statuses: write
+
+jobs:
+    lint-title:
+        name: Validate PR Title
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check PR Title
+              uses: amannn/action-semantic-pull-request@v6
+              env:
+                  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+              with:
+                  types: |
+                      feat
+                      fix
+                      docs
+                      style
+                      refactor
+                      perf
+                      test
+                      ci
+                      chore
+                      revert
+
+                  requireScope: true
+                  subjectPattern: ^(?![A-Z]).*(?<![.,;:!?])$
+                  wip: true

@@ -1,0 +1,130 @@
+name: Feature Request
+description: Propose a new feature or system improvement
+title: "[Feature]: "
+labels: [ "feature" ]
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thank you for suggesting an improvement.
+      Please describe the problem and the proposed solution clearly.
+
+- type: input
+  id: summary
+  attributes:
+    label: Summary
+    description: Provide a short title for the request
+    placeholder: "Example: Add Hyprland idle daemon with automatic screen lock"
+  validations:
+    required: true
+
+- type: textarea
+  id: problem
+  attributes:
+    label: Problem Statement
+    description: Describe the problem or limitation this feature addresses
+    placeholder: Explain the current limitation or missing capability
+  validations:
+    required: true
+
+- type: textarea
+  id: proposal
+  attributes:
+    label: Proposed Solution
+    description: Describe the desired solution
+    placeholder: |
+      Explain what should be built or changed.
+      If proposing a new shared module, describe what it declares and which hosts would use it.
+  validations:
+    required: true
+
+- type: textarea
+  id: alternatives
+  attributes:
+    label: Alternatives Considered
+    description: Describe any alternative solutions or workarounds considered
+    placeholder: List alternative approaches if applicable
+  validations:
+    required: false
+
+- type: dropdown
+  id: area
+  attributes:
+    label: Affected Area
+    description: Select the area most related to the request
+    multiple: true
+    options:
+    - Flake / Inputs
+    - Shared Module — core
+    - Shared Module — graphical
+    - Shared Module — hardware
+    - Shared Module — home
+    - Shared Module — impermanence
+    - New Shared Module
+    - Host — starkiller
+    - Host — vader
+    - Disk Layout (Disko)
+    - CI / GitHub Actions
+    - Documentation
+    - Other
+  validations:
+    required: true
+
+- type: dropdown
+  id: scope
+  attributes:
+    label: Scope
+    description: Where should this feature live?
+    options:
+    - Shared module (applies to all machines)
+    - Host-specific override (applies to one machine)
+    - Home Manager module (user-level)
+    - Infrastructure / CI
+    - Not sure yet
+  validations:
+    required: true
+
+- type: dropdown
+  id: priority
+  attributes:
+    label: Priority
+    description: Estimate the priority
+    options:
+    - Low — nice to have
+    - Medium — improves workflow
+    - High — core functionality gap
+    - Critical — blocks usage
+  validations:
+    required: true
+
+- type: textarea
+  id: impact
+  attributes:
+    label: Expected Impact
+    description: Describe the expected impact on the system or workflow
+    placeholder: |
+      - Which hosts benefit?
+      - Does this add state that needs impermanence declarations?
+      - Does this introduce new dependencies or flake inputs?
+  validations:
+    required: false
+
+- type: textarea
+  id: extra
+  attributes:
+    label: Additional Context
+    description: Add references, NixOS options, upstream links, screenshots, or related context
+  validations:
+    required: false
+
+- type: checkboxes
+  id: checks
+  attributes:
+    label: Validation
+    options:
+    - label: I searched for existing issues before creating this request
+      required: true
+    - label: I clearly described the problem and proposed solution
+      required: true
+    - label: This feature respects the shared=facts, host=policy architecture
+      required: true

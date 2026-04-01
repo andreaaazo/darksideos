@@ -1,0 +1,160 @@
+name: Technical Improvement
+description: Track engineering work, technical debt, refactors, or internal improvements
+title: "[Improvement]: "
+labels: [ "improvement" ]
+body:
+- type: markdown
+  attributes:
+    value: |
+      Use this template for engineering tasks, internal improvements, refactors,
+      technical debt, maintenance work, or non-feature implementation items.
+
+- type: input
+  id: summary
+  attributes:
+    label: Summary
+    description: Provide a short and clear title for this task
+    placeholder: "Example: Extract common btrfs mount options into a shared variable"
+  validations:
+    required: true
+
+- type: textarea
+  id: context
+  attributes:
+    label: Context
+    description: Describe the current situation and why this task is needed
+    placeholder: Explain the technical background, issue, or maintenance need
+  validations:
+    required: true
+
+- type: textarea
+  id: objective
+  attributes:
+    label: Objective
+    description: Describe the desired outcome
+    placeholder: Explain what should be improved, cleaned up, or standardized
+  validations:
+    required: true
+
+- type: dropdown
+  id: task_type
+  attributes:
+    label: Task Type
+    description: Select the type of technical work
+    options:
+    - Technical debt
+    - Refactor
+    - Module restructure
+    - CI / Tooling
+    - Flake maintenance (inputs, lockfile)
+    - Security hardening
+    - Boot / performance optimization
+    - Impermanence tuning
+    - Documentation improvement
+    - Architecture improvement
+    - Other
+  validations:
+    required: true
+
+- type: dropdown
+  id: area
+  attributes:
+    label: Affected Area
+    description: Select the area most related to this task
+    multiple: true
+    options:
+    - Flake / Inputs
+    - Shared Module — core
+    - Shared Module — graphical
+    - Shared Module — hardware
+    - Shared Module — home
+    - Shared Module — impermanence
+    - Host — starkiller
+    - Host — vader
+    - Disk Layout (Disko)
+    - CI / GitHub Actions
+    - Documentation
+    - Other
+  validations:
+    required: true
+
+- type: dropdown
+  id: priority
+  attributes:
+    label: Priority
+    description: Estimate the engineering priority
+    options:
+    - Low — cleanup, no urgency
+    - Medium — improves maintainability
+    - High — blocks other work or causes drift
+    - Critical — system integrity at risk
+  validations:
+    required: true
+
+- type: textarea
+  id: scope
+  attributes:
+    label: Scope
+    description: Describe what is in scope for this task
+    placeholder: |
+      List the expected work:
+      - Which files or modules are touched?
+      - Does this affect all hosts or a specific one?
+  validations:
+    required: false
+
+- type: textarea
+  id: out_of_scope
+  attributes:
+    label: Out of Scope
+    description: Describe what is explicitly not part of this task
+    placeholder: Clarify boundaries to avoid scope creep
+  validations:
+    required: false
+
+- type: textarea
+  id: risks
+  attributes:
+    label: Risks / Considerations
+    description: Describe risks, dependencies, or operational considerations
+    placeholder: |
+      - Does this change disk layout? (requires reinstall)
+      - Does this affect impermanence declarations? (state could be lost)
+      - Does this modify boot configuration? (risk of unbootable system)
+      - Does this change specialArgs? (all hosts must be updated)
+  validations:
+    required: false
+
+- type: textarea
+  id: completion
+  attributes:
+    label: Definition of Done
+    description: Describe what must be true for this task to be considered complete
+    placeholder: |
+      - `nix flake check` passes
+      - All affected hosts build with `nixos-rebuild build --flake .#<hostname>`
+      - No new state persists without impermanence declaration
+      - Shared module changes remain host-agnostic
+      - Documentation updated if architecture changed
+  validations:
+    required: true
+
+- type: textarea
+  id: references
+  attributes:
+    label: References / Additional Context
+    description: Add links to NixOS options, upstream issues, related PRs, or design docs
+  validations:
+    required: false
+
+- type: checkboxes
+  id: checks
+  attributes:
+    label: Validation
+    options:
+    - label: I searched for existing issues before creating this task
+      required: true
+    - label: I clearly described the goal and expected outcome
+      required: true
+    - label: This change respects the shared=facts, host=policy architecture
+      required: true

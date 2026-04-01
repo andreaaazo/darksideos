@@ -1,0 +1,8 @@
+# ===========================================================================
+# CODE OWNERS ROUTING
+# This file defines domain ownership. No Pull Request can be merged 
+# into 'main' without the explicit approval of the directory's Code Owner.
+# ===========================================================================
+
+# Global
+* @andreaaazo
