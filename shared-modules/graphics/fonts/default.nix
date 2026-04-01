@@ -1,3 +1,5 @@
+# System-wide font stack and fontconfig defaults.
+# Default NixOS fonts are disabled — only explicitly declared fonts exist.
 { pkgs, ... }:
 let
   # Builds a minimal Nix package from a raw font file (no compiler needed, hence NoCC).

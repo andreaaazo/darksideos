@@ -1,3 +1,5 @@
+# Pipewire audio stack with ALSA/PulseAudio compatibility.
+# Host-specific overrides belong in hosts/<hostname>/default.nix.
 { ... }:
 {
   services.pipewire = {

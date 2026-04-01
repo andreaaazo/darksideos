@@ -1,3 +1,5 @@
+# XDG Desktop Portals for sandboxed screen capture, file dialogs, and D-Bus services.
+# Host-specific overrides belong in hosts/<hostname>/default.nix.
 { pkgs, ... }:
 {
   xdg.portal = {
