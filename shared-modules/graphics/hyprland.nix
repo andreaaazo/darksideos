@@ -1,3 +1,5 @@
+# Hyprland compositor and Wayland session setup.
+# Host-specific overrides belong in hosts/<hostname>/default.nix.
 { ... }:
 {
   programs.hyprland = {

@@ -1,3 +1,5 @@
+# Shared Bluetooth baseline.
+# Host-specific overrides belong in hosts/<hostname>/default.nix.
 { ... }:
 {
   hardware.bluetooth = {

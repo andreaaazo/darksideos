@@ -1,5 +1,3 @@
-# modules/impermanence/default.nix
-#
 # Declares system-level state that must persist across reboots.
 # Root (/) is tmpfs — anything not listed here is wiped on every boot.
 # User-level persistence is handled separately in Home Manager.
