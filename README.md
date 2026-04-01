@@ -1,5 +1,5 @@
 <h1 align="center">
-   <img src="https://shop.raceya.fit/wp-content/uploads/2020/11/logo-placeholder.jpg" width="200px">
+   <img src="https://github.com/andreaaazo/darksideos/blob/main/docs/logo.png" width="200px">
    <br>
    <br>
    DarksideOS
