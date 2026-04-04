@@ -17,13 +17,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v17
+        uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Cache Nix store
-        uses: DeterminateSystems/magic-nix-cache-action@v9
+        uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Formatting (alejandra)
         run: nix build .#checks.x86_64-linux.formatting --print-build-logs
@@ -39,6 +39,6 @@ jobs:
           hosts=$(nix eval .#nixosConfigurations --apply 'builtins.attrNames' --json)
           for host in $(echo "$hosts" | jq -r '.[]'); do
             echo "::group::Evaluating $host"
-            nix eval ".#nixosConfigurations.$host.config.system.build.toplevel" --no-build --show-trace
+            nix eval ".#nixosConfigurations.$host.config.system.build.toplevel" --show-trace
             echo "::endgroup::"
           done
