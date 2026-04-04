@@ -5,7 +5,6 @@
   nixpkgs.config.allowUnfree = true;
 
   nix = {
-
     settings = {
       # Enables nix build/nix flake CLI and flakes support (required for workflow)
       experimental-features = [
