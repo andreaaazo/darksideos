@@ -2,6 +2,9 @@
 # Host-specific overrides belong in hosts/<hostname>/default.nix.
 {
   nix = {
+    # Allow unfree packages from nixpkgs (e.g. for firmware blobs, GPU drivers, etc.)
+    nixpkgs.config.allowUnfree = true;
+
     settings = {
       # Enables nix build/nix flake CLI and flakes support (required for workflow)
       experimental-features = [
