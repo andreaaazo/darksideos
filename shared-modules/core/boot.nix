@@ -1,7 +1,6 @@
 # Boot configuration shared across all hosts.
 # Host-specific overrides belong in hosts/<hostname>/default.nix.
-{ pkgs, ... }:
-{
+{pkgs, ...}: {
   boot = {
     loader = {
       systemd-boot = {

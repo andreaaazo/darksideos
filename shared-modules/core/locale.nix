@@ -1,6 +1,5 @@
 # Locale configuration shared across all hosts.
 # Host-specific overrides belong in hosts/<hostname>/default.nix.
-{ ... }:
 {
   # System clock set to CET/CEST with automatic DST switching.
   time.timeZone = "Europe/Zurich";

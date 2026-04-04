@@ -1,0 +1,44 @@
+name: Nix Code Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  nix-checks:
+    name: Nix Code Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Formatting (alejandra)
+        run: nix build .#checks.x86_64-linux.formatting --print-build-logs
+
+      - name: Linting (statix)
+        run: nix build .#checks.x86_64-linux.linting --print-build-logs
+
+      - name: Dead code (deadnix)
+        run: nix build .#checks.x86_64-linux.deadcode --print-build-logs
+
+      - name: Evaluate all hosts
+        run: |
+          hosts=$(nix eval .#nixosConfigurations --apply 'builtins.attrNames' --json)
+          for host in $(echo "$hosts" | jq -r '.[]'); do
+            echo "::group::Evaluating $host"
+            nix eval ".#nixosConfigurations.$host.config.system.build.toplevel" --show-trace
+            echo "::endgroup::"
+          done

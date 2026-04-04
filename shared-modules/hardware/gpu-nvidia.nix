@@ -1,10 +1,9 @@
 # Shared NVIDIA baseline.
 # ONLY contains what is universally true for any machine with an NVIDIA GPU.
 # Host-specific policy belongs in hosts/<hostname>/default.nix.
-{ config, ... }:
-{
+{config, ...}: {
   # Tells NixOS to use the proprietary NVIDIA driver instead of nouveau (required for CUDA, Wayland compositing, and full GPU performance).
-  services.xserver.videoDrivers = [ "nvidia" ];
+  services.xserver.videoDrivers = ["nvidia"];
 
   hardware = {
     # Enables NVIDIA Container Toolkit so Docker/Podman containers can access the GPU (required for containerized CUDA/ML workloads).
@@ -15,7 +14,6 @@
       enable = true;
       # Installs 32-bit NVIDIA/Mesa libraries (required for Steam, Wine, and legacy 32-bit applications).
       enable32Bit = true;
-
     };
 
     nvidia = {
@@ -34,5 +32,4 @@
     "nvidia-drm.fbdev=1" # Registers an NVIDIA framebuffer device for clean TTY rendering and boot console at native resolution (default since driver 570+).
     "nvidia-drm.modeset=1" # Enables DRM kernel modesetting via kernel parameter (explicit match for modesetting.enable, required for Wayland).
   ];
-
 }

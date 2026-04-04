@@ -1,6 +1,5 @@
 # Pipewire audio stack with ALSA/PulseAudio compatibility.
 # Host-specific overrides belong in hosts/<hostname>/default.nix.
-{ ... }:
 {
   services.pipewire = {
     # Installs Pipewire and starts the audio/video daemon that replaces PulseAudio and ALSA.

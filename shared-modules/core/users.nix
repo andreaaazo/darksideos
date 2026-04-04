@@ -1,8 +1,6 @@
 # Users configuration shared across all hosts.
 # Host-specific overrides belong in hosts/<hostname>/default.nix.
-{ ... }:
 {
-
   users = {
     # Disables passwd/useradd commands; users can only be created/modified declaratively in Nix (essential with impermanence, otherwise changes vanish on reboot).
     mutableUsers = false;

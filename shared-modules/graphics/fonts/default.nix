@@ -1,7 +1,6 @@
 # System-wide font stack and fontconfig defaults.
 # Default NixOS fonts are disabled — only explicitly declared fonts exist.
-{ pkgs, ... }:
-let
+{pkgs, ...}: let
   # Builds a minimal Nix package from a raw font file (no compiler needed, hence NoCC).
   apple-emoji = pkgs.stdenvNoCC.mkDerivation {
     # Package name in the nix store (used for identification, not installation logic).
@@ -23,8 +22,7 @@ let
       cp $src $out/share/fonts/truetype/AppleColorEmoji.ttf
     '';
   };
-in
-{
+in {
   fonts = {
     # Disables NixOS default fonts (DejaVu, Liberation, etc.) — only explicitly declared fonts exist on the system.
     enableDefaultPackages = false;
@@ -37,7 +35,7 @@ in
       # The custom-built package defined above, providing Apple-style color emoji system-wide.
       apple-emoji
       # Builds an inline Nix package that copies committed DIN Next .otf files into the nix store font directory.
-      (pkgs.runCommand "din-next" { } ''
+      (pkgs.runCommand "din-next" {} ''
         mkdir -p $out/share/fonts/opentype
         cp ${./din-next}/*.otf $out/share/fonts/opentype/
       '')
@@ -45,13 +43,13 @@ in
 
     fontconfig.defaultFonts = {
       # When any app requests "monospace" font family, fontconfig resolves to JetBrains Nerd Font.
-      monospace = [ "JetBrainsMono Nerd Font" ];
+      monospace = ["JetBrainsMono Nerd Font"];
       # When any app requests "sans-serif" font family, fontconfig resolves to Inter.
-      sansSerif = [ "Inter" ];
+      sansSerif = ["Inter"];
       # When any app requests "serif" font family, fontconfig falls back to Inter (no dedicated serif font installed).
-      serif = [ "Inter" ];
+      serif = ["Inter"];
       # When any app needs to render emoji, fontconfig resolves to Apple Color Emoji.
-      emoji = [ "Apple Color Emoji" ];
+      emoji = ["Apple Color Emoji"];
     };
   };
 }

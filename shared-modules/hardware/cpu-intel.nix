@@ -1,9 +1,7 @@
 # Shared Intel CPU baseline.
 # ONLY contains what is universally true for any machine with an Intel CPU.
 # Host-specific policy belongs in hosts/<hostname>/default.nix.
-{ lib, ... }:
-{
-
+{lib, ...}: {
   hardware = {
     # Applies Intel microcode patches at boot to fix CPU bugs and security vulnerabilities (Spectre, Meltdown, Downfall, etc.).
     cpu.intel.updateMicrocode = true;
@@ -12,6 +10,5 @@
   };
 
   # Loads Intel VT-x virtualization kernel module (required for KVM/QEMU virtual machines and some container runtimes).
-  boot.kernelModules = [ "kvm-intel" ];
-
+  boot.kernelModules = ["kvm-intel"];
 }

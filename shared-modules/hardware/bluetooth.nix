@@ -1,6 +1,5 @@
 # Shared Bluetooth baseline.
 # Host-specific overrides belong in hosts/<hostname>/default.nix.
-{ ... }:
 {
   hardware.bluetooth = {
     # Installs BlueZ stack and starts the bluetoothd daemon so the system can manage Bluetooth hardware.

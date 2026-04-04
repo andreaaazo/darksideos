@@ -25,49 +25,65 @@
     };
   };
 
-  outputs =
-    {
-      nixpkgs,
-      home-manager,
-      disko,
-      impermanence,
-      ...
-    }:
-    let
-      # Shared modules for every host configuration
-      commonModules = [
-        disko.nixosModules.disko
-        impermanence.nixosModules.impermanence
-        home-manager.nixosModules.home-manager
-      ];
-    in
-    {
-      nixosConfigurations = {
-        starkiller = nixpkgs.lib.nixosSystem {
-          # Linux 64-bit system
-          system = "x86_64-linux";
-          # Pass arguments to modules for use in configuration
-          specialArgs = {
-            hostName = "starkiller";
-            stateVersion = "25.11";
-          };
-          modules = commonModules ++ [
+  outputs = {
+    self,
+    nixpkgs,
+    home-manager,
+    disko,
+    impermanence,
+    ...
+  }: let
+    linuxSystem = "x86_64-linux";
+    darwinSystem = "x86_64-darwin";
+
+    pkgsLinux = nixpkgs.legacyPackages.${linuxSystem};
+    pkgsDarwin = nixpkgs.legacyPackages.${darwinSystem};
+
+    # Shared modules for every host configuration
+    commonModules = [
+      disko.nixosModules.disko
+      impermanence.nixosModules.impermanence
+      home-manager.nixosModules.home-manager
+    ];
+  in {
+    # Development shell: nix develop
+    devShells.${linuxSystem}.default = import ./devshell.nix {pkgs = pkgsLinux;};
+    devShells.${darwinSystem}.default = import ./devshell.nix {pkgs = pkgsDarwin;};
+
+    # Flake checks: nix flake check
+    checks.${linuxSystem} = import ./checks.nix {
+      pkgs = pkgsLinux;
+      inherit self;
+    };
+    checks.${darwinSystem} = import ./checks.nix {
+      pkgs = pkgsDarwin;
+      inherit self;
+    };
+
+    nixosConfigurations = {
+      starkiller = nixpkgs.lib.nixosSystem {
+        system = linuxSystem;
+        specialArgs = {
+          hostName = "starkiller";
+          stateVersion = "25.11";
+        };
+        modules =
+          commonModules
+          ++ [
             ./hosts/starkiller
           ];
-        };
-
-        vader = nixpkgs.lib.nixosSystem {
-          # Linux 64-bit system
-          system = "x86_64-linux";
-          # Pass arguments to modules for use in configuration
-          specialArgs = {
-            hostName = "vader";
-            stateVersion = "25.11";
-          };
-          modules = commonModules ++ [
-            ./hosts/vader
-          ];
-        };
       };
+
+      # vader = nixpkgs.lib.nixosSystem {
+      #   system = linuxSystem;
+      #   specialArgs = {
+      #     hostName = "vader";
+      #     stateVersion = "25.11";
+      #   };
+      #   modules = commonModules ++ [
+      #     ./hosts/vader
+      #   ];
+      # };
     };
+  };
 }
