@@ -7,7 +7,6 @@
 #
 # Secrets at /persist/secrets/ are already persistent by virtue of
 # being on the /persist btrfs subvolume — no declaration needed here.
-{ ... }:
 {
   # Declares /persist as the source for all bind mounts (everything listed here maps from /persist<path> → <path>).
   environment.persistence."/persist" = {

@@ -1,7 +1,6 @@
 # Declarative disk layout for starkiller.
 # Device path is hardcoded below.
 # Find with: ls -la /dev/disk/by-id/ | grep nvme
-{ ... }:
 {
   disko.devices = {
     # tmpfs root — wiped on every boot
@@ -24,7 +23,6 @@
         content = {
           type = "gpt";
           partitions = {
-
             # EFI System Partition
             esp = {
               size = "1G";
@@ -51,9 +49,8 @@
                 };
                 content = {
                   type = "btrfs";
-                  extraArgs = [ "-f" ]; # Force format, !warning: deletes existing data
+                  extraArgs = ["-f"]; # Force format, !warning: deletes existing data
                   subvolumes = {
-
                     "@nix" = {
                       mountpoint = "/nix";
                       mountOptions = [
@@ -102,12 +99,10 @@
                         };
                       };
                     };
-
                   };
                 };
               };
             };
-
           };
         };
       };

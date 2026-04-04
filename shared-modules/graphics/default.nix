@@ -3,8 +3,7 @@
 # belong in Home Manager (shared-modules/home/modules/).
 #
 # No display manager — login via TTY, launch Hyprland manually or via shell profile.
-{ ... }:
-{
+{...}: {
   imports = [
     ./hyprland.nix
     ./audio.nix

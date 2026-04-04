@@ -1,7 +1,6 @@
 # XDG Desktop Portals for sandboxed screen capture, file dialogs, and D-Bus services.
 # Host-specific overrides belong in hosts/<hostname>/default.nix.
-{ pkgs, ... }:
-{
+{pkgs, ...}: {
   xdg.portal = {
     # Enables the XDG Desktop Portal D-Bus service that apps use for sandboxed access to screen capture, file dialogs, and notifications.
     enable = true;

@@ -1,7 +1,6 @@
 # Compositor for starkiller.
 # This file imports modules and declares host-specific overrides.
-{ pkgs, ... }:
-{
+{pkgs, ...}: {
   imports = [
     # Disk layout
     ./disk.nix
@@ -44,5 +43,4 @@
     # Tells nvidia-vaapi-driver to use direct rendering instead of going through GBM (better performance, fewer copies).
     NVD_BACKEND = "direct";
   };
-
 }
