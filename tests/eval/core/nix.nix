@@ -2,10 +2,8 @@
 # Verifies Nix daemon settings: flakes, GC, store optimization.
 {
   pkgs,
-  lib,
   testLib,
-}:
-let
+}: let
   # Evaluate only the nix module in isolation
   config = testLib.getConfig {
     modules = [
@@ -125,9 +123,9 @@ let
     })
   ];
 in
-pkgs.runCommand "eval-core-nix" { } (
-  testLib.mkCheckScript {
-    name = "core/nix";
-    assertionResults = assertions;
-  }
-)
+  pkgs.runCommand "eval-core-nix" {} (
+    testLib.mkCheckScript {
+      name = "core/nix";
+      assertionResults = assertions;
+    }
+  )

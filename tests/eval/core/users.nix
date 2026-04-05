@@ -2,10 +2,8 @@
 # Verifies user security: mutableUsers, root lock, sudo policy.
 {
   pkgs,
-  lib,
   testLib,
-}:
-let
+}: let
   # Evaluate only the users module in isolation
   config = testLib.getConfig {
     modules = [
@@ -141,9 +139,9 @@ let
     })
   ];
 in
-pkgs.runCommand "eval-core-users" { } (
-  testLib.mkCheckScript {
-    name = "core/users";
-    assertionResults = assertions;
-  }
-)
+  pkgs.runCommand "eval-core-users" {} (
+    testLib.mkCheckScript {
+      name = "core/users";
+      assertionResults = assertions;
+    }
+  )

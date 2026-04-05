@@ -2,10 +2,8 @@
 # Verifies network security settings: firewall, NetworkManager.
 {
   pkgs,
-  lib,
   testLib,
-}:
-let
+}: let
   # Evaluate only the networking module in isolation
   config = testLib.getConfig {
     modules = [
@@ -50,7 +48,7 @@ let
         "firewall"
         "allowedTCPPorts"
       ];
-      expected = [ ];
+      expected = [];
       severity = "high";
       rationale = "All ports closed by default — open only what is needed";
     })
@@ -64,7 +62,7 @@ let
         "firewall"
         "allowedUDPPorts"
       ];
-      expected = [ ];
+      expected = [];
       severity = "high";
       rationale = "All ports closed by default — open only what is needed";
     })
@@ -83,9 +81,9 @@ let
     })
   ];
 in
-pkgs.runCommand "eval-core-networking" { } (
-  testLib.mkCheckScript {
-    name = "core/networking";
-    assertionResults = assertions;
-  }
-)
+  pkgs.runCommand "eval-core-networking" {} (
+    testLib.mkCheckScript {
+      name = "core/networking";
+      assertionResults = assertions;
+    }
+  )

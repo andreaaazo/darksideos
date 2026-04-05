@@ -2,10 +2,8 @@
 # Verifies locale, timezone, and keyboard configuration.
 {
   pkgs,
-  lib,
   testLib,
-}:
-let
+}: let
   # Evaluate only the locale module in isolation
   config = testLib.getConfig {
     modules = [
@@ -99,9 +97,9 @@ let
     })
   ];
 in
-pkgs.runCommand "eval-core-locale" { } (
-  testLib.mkCheckScript {
-    name = "core/locale";
-    assertionResults = assertions;
-  }
-)
+  pkgs.runCommand "eval-core-locale" {} (
+    testLib.mkCheckScript {
+      name = "core/locale";
+      assertionResults = assertions;
+    }
+  )

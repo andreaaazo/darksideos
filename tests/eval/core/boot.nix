@@ -2,10 +2,8 @@
 # Verifies boot security settings and systemd-boot configuration.
 {
   pkgs,
-  lib,
   testLib,
-}:
-let
+}: let
   # Evaluate only the boot module in isolation
   config = testLib.getConfig {
     modules = [
@@ -73,9 +71,9 @@ let
     })
   ];
 in
-pkgs.runCommand "eval-core-boot" { } (
-  testLib.mkCheckScript {
-    name = "core/boot";
-    assertionResults = assertions;
-  }
-)
+  pkgs.runCommand "eval-core-boot" {} (
+    testLib.mkCheckScript {
+      name = "core/boot";
+      assertionResults = assertions;
+    }
+  )
