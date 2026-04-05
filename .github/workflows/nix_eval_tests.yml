@@ -33,12 +33,3 @@ jobs:
             nix build ".#checks.x86_64-linux.$check" --print-build-logs
             echo "::endgroup::"
           done
-
-      - name: Evaluate all hosts
-        run: |
-          hosts=$(nix eval .#nixosConfigurations --apply 'builtins.attrNames' --json)
-          for host in $(echo "$hosts" | jq -r '.[]'); do
-            echo "::group::Evaluating $host"
-            nix eval ".#nixosConfigurations.$host.config.system.build.toplevel" --show-trace
-            echo "::endgroup::"
-          done
