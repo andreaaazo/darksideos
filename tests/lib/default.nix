@@ -5,9 +5,10 @@
   lib,
   nixpkgs,
 }: let
-  eval = import ./eval.nix {inherit pkgs lib nixpkgs;};
+  eval = import ./eval.nix {inherit nixpkgs;};
   assertions = import ./assertions.nix {inherit lib;};
 in {
+  inherit pkgs;
   inherit (eval) evalSharedModule getConfig;
   inherit
     (assertions)
