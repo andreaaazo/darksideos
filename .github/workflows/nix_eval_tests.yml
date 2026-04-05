@@ -27,9 +27,9 @@ jobs:
 
       - name: Run eval tests
         run: |
-          checks=$(nix eval .#checks.x86_64-linux --apply 'builtins.attrNames' --json)
-          for check in $(echo "$checks" | jq -r '.[] | select(startswith("eval-"))'); do
-            echo "::group::Running $check"
-            nix build ".#checks.x86_64-linux.$check" --print-build-logs
+          tests=$(nix eval .#evalTests.x86_64-linux --apply 'builtins.attrNames' --json)
+          for test in $(echo "$tests" | jq -r '.[]'); do
+            echo "::group::Running $test"
+            nix build ".#evalTests.x86_64-linux.$test" --print-build-logs
             echo "::endgroup::"
           done
