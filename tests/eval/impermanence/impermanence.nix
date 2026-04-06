@@ -1,8 +1,12 @@
 # Eval tests for shared-modules/impermanence/impermanence.nix
 # Verifies system-level persistence declarations.
+#
+# Note: impermanence converts string paths to attrsets internally.
+# We test that the paths exist as keys in the directories/files attrsets.
 {
   pkgs,
   testLib,
+  lib ? pkgs.lib,
 }: let
   config = testLib.getConfig {
     extraModules = [testLib.impermanenceModule];
@@ -10,6 +14,13 @@
       ../../../shared-modules/impermanence/impermanence.nix
     ];
   };
+
+  persistConfig = config.environment.persistence."/persist";
+
+  # Helper to check if a path is declared in directories
+  hasDir = path: builtins.hasAttr path persistConfig.directories;
+  # Helper to check if a path is declared in files  
+  hasFile = path: builtins.hasAttr path persistConfig.files;
 
   assertions = [
     (testLib.assertEnabled {
@@ -26,130 +37,90 @@
       rationale = "Hides bind mounts from df and file managers";
     })
 
-    (testLib.assertContains {
+    (testLib.mkResult {
       id = "impermanence-002";
       name = "/var/lib/nixos persisted";
-      inherit config;
-      path = [
-        "environment"
-        "persistence"
-        "/persist"
-        "directories"
-      ];
-      element = "/var/lib/nixos";
+      passed = hasDir "/var/lib/nixos";
+      expected = true;
+      actual = hasDir "/var/lib/nixos";
       severity = "critical";
       rationale = "UID/GID allocation state prevents ownership shifts";
     })
 
-    (testLib.assertContains {
+    (testLib.mkResult {
       id = "impermanence-003";
       name = "/var/lib/systemd/coredump persisted";
-      inherit config;
-      path = [
-        "environment"
-        "persistence"
-        "/persist"
-        "directories"
-      ];
-      element = "/var/lib/systemd/coredump";
+      passed = hasDir "/var/lib/systemd/coredump";
+      expected = true;
+      actual = hasDir "/var/lib/systemd/coredump";
       severity = "medium";
       rationale = "Preserves core dumps for crash debugging";
     })
 
-    (testLib.assertContains {
+    (testLib.mkResult {
       id = "impermanence-004";
       name = "/var/lib/systemd/timers persisted";
-      inherit config;
-      path = [
-        "environment"
-        "persistence"
-        "/persist"
-        "directories"
-      ];
-      element = "/var/lib/systemd/timers";
+      passed = hasDir "/var/lib/systemd/timers";
+      expected = true;
+      actual = hasDir "/var/lib/systemd/timers";
       severity = "high";
       rationale = "Timer timestamps prevent re-firing on every boot";
     })
 
-    (testLib.assertContains {
+    (testLib.mkResult {
       id = "impermanence-005";
       name = "/var/lib/NetworkManager persisted";
-      inherit config;
-      path = [
-        "environment"
-        "persistence"
-        "/persist"
-        "directories"
-      ];
-      element = "/var/lib/NetworkManager";
+      passed = hasDir "/var/lib/NetworkManager";
+      expected = true;
+      actual = hasDir "/var/lib/NetworkManager";
       severity = "critical";
       rationale = "WiFi passwords, DHCP leases, VPN configs";
     })
 
-    (testLib.assertContains {
+    (testLib.mkResult {
       id = "impermanence-006";
       name = "/etc/NetworkManager/system-connections persisted";
-      inherit config;
-      path = [
-        "environment"
-        "persistence"
-        "/persist"
-        "directories"
-      ];
-      element = "/etc/NetworkManager/system-connections";
+      passed = hasDir "/etc/NetworkManager/system-connections";
+      expected = true;
+      actual = hasDir "/etc/NetworkManager/system-connections";
       severity = "critical";
       rationale = "Network connection config files";
     })
 
-    (testLib.assertContains {
+    (testLib.mkResult {
       id = "impermanence-007";
       name = "/var/lib/bluetooth persisted";
-      inherit config;
-      path = [
-        "environment"
-        "persistence"
-        "/persist"
-        "directories"
-      ];
-      element = "/var/lib/bluetooth";
+      passed = hasDir "/var/lib/bluetooth";
+      expected = true;
+      actual = hasDir "/var/lib/bluetooth";
       severity = "high";
       rationale = "Bluetooth pairing keys prevent re-pairing";
     })
 
-    (testLib.assertContains {
+    (testLib.mkResult {
       id = "impermanence-008";
       name = "/etc/ssh persisted";
-      inherit config;
-      path = [
-        "environment"
-        "persistence"
-        "/persist"
-        "directories"
-      ];
-      element = "/etc/ssh";
+      passed = hasDir "/etc/ssh";
+      expected = true;
+      actual = hasDir "/etc/ssh";
       severity = "critical";
       rationale = "SSH host keys prevent MITM warnings";
     })
 
-    (testLib.assertContains {
+    (testLib.mkResult {
       id = "impermanence-009";
       name = "/etc/machine-id persisted";
-      inherit config;
-      path = [
-        "environment"
-        "persistence"
-        "/persist"
-        "files"
-      ];
-      element = "/etc/machine-id";
+      passed = hasFile "/etc/machine-id";
+      expected = true;
+      actual = hasFile "/etc/machine-id";
       severity = "critical";
       rationale = "Stable machine ID for systemd journal, D-Bus, DHCP";
     })
   ];
 in
-  pkgs.runCommand "eval-impermanence" {} (
-    testLib.mkCheckScript {
-      name = "impermanence";
-      assertionResults = assertions;
-    }
-  )
+pkgs.runCommand "eval-impermanence" {} (
+  testLib.mkCheckScript {
+    name = "impermanence";
+    assertionResults = assertions;
+  }
+)
