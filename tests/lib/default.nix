@@ -4,15 +4,14 @@
   pkgs,
   lib,
   nixpkgs,
-}:
-let
-  eval = import ./eval.nix { inherit nixpkgs; };
-  assertions = import ./assertions.nix { inherit lib; };
-in
-{
+}: let
+  eval = import ./eval.nix {inherit nixpkgs;};
+  assertions = import ./assertions.nix {inherit lib;};
+in {
   inherit pkgs;
   inherit (eval) evalSharedModule getConfig;
-  inherit (assertions)
+  inherit
+    (assertions)
     mkResult
     formatFailure
     assertEqual
