@@ -66,7 +66,7 @@
     evalTests.${linuxSystem} = import ./tests {
       pkgs = pkgsLinux;
       inherit (nixpkgs) lib;
-      inherit nixpkgs;
+      inherit nixpkgs home-manager impermanence;
     };
 
     nixosConfigurations = {
