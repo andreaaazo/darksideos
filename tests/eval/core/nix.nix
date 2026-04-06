@@ -67,7 +67,7 @@
       rationale = "Hardlinks identical files to save disk space";
     })
 
-    (testLib.assertString {
+    (testLib.assertContains {
       id = "nix-005";
       name = "GC runs weekly";
       inherit config;
@@ -76,7 +76,7 @@
         "gc"
         "dates"
       ];
-      expected = "weekly";
+      element = "weekly";
       severity = "medium";
       rationale = "Regular GC schedule prevents disk bloat";
     })
