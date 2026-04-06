@@ -8,6 +8,13 @@
     extraModules = [testLib.hmModule];
     modules = [
       ../../../shared-modules/home/home.nix
+      # Stub: define the andrea user so home-manager can resolve homeDirectory
+      {
+        users.users.andrea = {
+          isNormalUser = true;
+          home = "/home/andrea";
+        };
+      }
     ];
   };
 
