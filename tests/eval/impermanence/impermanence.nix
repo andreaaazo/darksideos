@@ -57,9 +57,9 @@
     })
   ];
 in
-pkgs.runCommand "eval-impermanence" {} (
-  testLib.mkCheckScript {
-    name = "impermanence";
-    assertionResults = assertions;
-  }
-)
+  pkgs.runCommand "eval-impermanence" {} (
+    testLib.mkCheckScript {
+      name = "impermanence";
+      assertionResults = assertions;
+    }
+  )
