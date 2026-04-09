@@ -51,6 +51,7 @@
     devShells.${darwinSystem}.default = import ./devshell.nix {pkgs = pkgsDarwin;};
 
     # Flake checks: nix flake check
+    # Static analysis (formatting, linting, deadcode) runs on both Linux and Darwin.
     checks.${linuxSystem} = import ./checks.nix {
       pkgs = pkgsLinux;
       inherit self;
@@ -58,6 +59,14 @@
     checks.${darwinSystem} = import ./checks.nix {
       pkgs = pkgsDarwin;
       inherit self;
+    };
+
+    # Eval tests: verify shared modules produce correct configuration.
+    # Linux-only (nixosSystem is Linux-only).
+    evalTests.${linuxSystem} = import ./tests {
+      pkgs = pkgsLinux;
+      inherit (nixpkgs) lib;
+      inherit nixpkgs home-manager impermanence;
     };
 
     nixosConfigurations = {
