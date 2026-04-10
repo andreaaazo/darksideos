@@ -150,7 +150,7 @@
   }:
     assertEqual {
       inherit
-        id
+        idhttps://github.com/andreaaazo/darksideos/pull/10/conflict?name=tests%252Feval%252Fcore%252Fnix.nix&base_oid=28b6fb3b8af87f0e4762e03899a49ef1b13e1d9b&head_oid=24654632f4ed3fb79dff1f055d3977be2c1f72a1
         name
         config
         path
