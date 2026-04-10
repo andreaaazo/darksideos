@@ -3,12 +3,18 @@
 vmLib.mkVmTest {
   name = "core-users";
   nodeModules = [
-    ({lib, pkgs, ...}: {
+    ({
+      lib,
+      pkgs,
+      ...
+    }: {
       # runNixOSTest sets a root hashedPasswordFile; force shared root-lock invariant.
-      users.users.root.hashedPasswordFile = lib.mkForce null;
-      users.users.root.hashedPassword = lib.mkForce "!";
-      # VM fixture: provide deterministic hashedPasswordFile content without host secrets.
-      users.users.andrea.hashedPasswordFile = lib.mkForce (toString (pkgs.writeText "vm-andrea-password-hash" "!"));
+      users.users = {
+        root.hashedPasswordFile = lib.mkForce null;
+        root.hashedPassword = lib.mkForce "!";
+        # VM fixture: provide deterministic hashedPasswordFile content without host secrets.
+        andrea.hashedPasswordFile = lib.mkForce (toString (pkgs.writeText "vm-andrea-password-hash" "!"));
+      };
     })
     ../../../../shared-modules/core/users.nix
   ];
