@@ -7,26 +7,7 @@ vmLib.mkVmTest {
   ];
 
   testScript = ''
-    import json
-
-
-    def fail_assertion(assertion_id, name, expected, actual, severity="high", rationale=""):
-        print(f"[FAIL] {assertion_id}: {name}")
-        print(f"  Expected: {json.dumps(expected)}")
-        print(f"  Actual:   {json.dumps(actual)}")
-        print(f"  Severity: {severity}")
-        if rationale != "":
-            print(f"  Rationale: {rationale}")
-        raise Exception(f"{assertion_id} failed")
-
-
-    def assert_command(assertion_id, name, command, severity="high", rationale=""):
-        try:
-            machine.succeed(command)
-            print(f"[PASS] {assertion_id}: {name}")
-        except Exception:
-            fail_assertion(assertion_id, name, "command succeeds", "command failed", severity, rationale)
-
+    ${vmLib.assertions.common}
 
     assert_command(
         "vm-net-001",

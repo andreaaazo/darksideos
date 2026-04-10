@@ -6,6 +6,7 @@
 }: {
   inherit pkgs;
   baseModule = import ./base-module.nix {};
+  assertions = import ./assertions.nix;
   mkVmTest = import ./mk-vm-test.nix {
     inherit
       pkgs
