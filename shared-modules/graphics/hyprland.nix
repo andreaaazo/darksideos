@@ -1,20 +1,32 @@
 # Hyprland compositor and Wayland session setup.
 # Host-specific overrides belong in hosts/<hostname>/default.nix.
-{
+{pkgs, ...}: {
   programs.hyprland = {
-    # Installs Hyprland compositor, configures the Wayland session, and sets required environment variables.
+    # Install and enable Hyprland compositor.
     enable = true;
-    # Disables the X11 compatibility layer so legacy apps (Electron, Steam, old GTK/Qt) can't run inside Wayland.
+    # Pure Wayland baseline: no X11 compatibility layer.
     xwayland.enable = false;
+    # Use modern systemd-aware session manager flow.
+    withUWSM = true;
+    # Keep systemd user manager PATH untouched by Hyprland module helper.
+    systemd.setPath.enable = false;
+    # Explicit package selection.
+    package = pkgs.hyprland;
+    # Explicit Hyprland portal backend package.
+    portalPackage = pkgs.xdg-desktop-portal-hyprland;
   };
 
-  # Enables PolicyKit authentication agent required by Hyprland to access input devices, GPU, and perform privileged actions without root.
+  # PolicyKit for privileged desktop actions without root session.
   security.polkit.enable = true;
 
   environment.sessionVariables = {
-    # Tells apps the current session is Wayland so they choose the correct rendering backend.
+    # Explicit Wayland session identity.
     XDG_SESSION_TYPE = "wayland";
-    # Tells XDG portals and desktop-aware apps which compositor is running (used for portal backend selection).
+    # Desktop identity for portals and desktop-aware apps.
     XDG_CURRENT_DESKTOP = "Hyprland";
+    # Chromium/Electron Ozone Wayland backend toggle.
+    NIXOS_OZONE_WL = "1";
+    # Firefox native Wayland backend toggle.
+    MOZ_ENABLE_WAYLAND = "1";
   };
 }

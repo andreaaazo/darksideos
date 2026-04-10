@@ -51,5 +51,12 @@ in {
       # When any app needs to render emoji, fontconfig resolves to Apple Color Emoji.
       emoji = ["Apple Color Emoji"];
     };
+
+    fontconfig = {
+      # Reject legacy bitmap fonts to keep rendering modern and avoid obsolete font fallbacks.
+      allowBitmaps = false;
+      # Enforce deterministic system font policy; do not load per-user fontconfig overrides.
+      includeUserConf = false;
+    };
   };
 }

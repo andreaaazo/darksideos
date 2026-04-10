@@ -1,5 +1,5 @@
 # Eval tests for shared-modules/graphics/audio.nix
-# Verifies Pipewire audio stack with ALSA/PulseAudio compatibility.
+# Verifies minimal no-legacy PipeWire baseline.
 {
   pkgs,
   testLib,
@@ -21,11 +21,51 @@
         "enable"
       ];
       severity = "critical";
-      rationale = "Pipewire is the modern audio/video daemon replacing PulseAudio";
+      rationale = "PipeWire is the shared modern audio daemon baseline";
     })
 
     (testLib.assertEnabled {
       id = "audio-002";
+      name = "Pipewire audio mode enabled";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "audio"
+        "enable"
+      ];
+      severity = "critical";
+      rationale = "Audio mode must be explicit for predictable module behavior";
+    })
+
+    (testLib.assertEnabled {
+      id = "audio-003";
+      name = "Pipewire socket activation enabled";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "socketActivation"
+      ];
+      severity = "high";
+      rationale = "On-demand startup keeps baseline lean without idle daemon overhead";
+    })
+
+    (testLib.assertDisabled {
+      id = "audio-004";
+      name = "Pipewire system-wide mode disabled";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "systemWide"
+      ];
+      severity = "high";
+      rationale = "Per-user isolation is preferred in shared baseline";
+    })
+
+    (testLib.assertEnabled {
+      id = "audio-005";
       name = "ALSA compatibility enabled";
       inherit config;
       path = [
@@ -38,9 +78,9 @@
       rationale = "ALSA layer needed for games and low-level audio tools";
     })
 
-    (testLib.assertEnabled {
-      id = "audio-003";
-      name = "32-bit ALSA support enabled";
+    (testLib.assertDisabled {
+      id = "audio-006";
+      name = "32-bit ALSA support disabled";
       inherit config;
       path = [
         "services"
@@ -49,12 +89,12 @@
         "support32Bit"
       ];
       severity = "high";
-      rationale = "Required for Steam and Wine 32-bit games";
+      rationale = "Shared baseline avoids optional 32-bit compatibility footprint";
     })
 
-    (testLib.assertEnabled {
-      id = "audio-004";
-      name = "PulseAudio compatibility enabled";
+    (testLib.assertDisabled {
+      id = "audio-007";
+      name = "Pipewire PulseAudio emulation disabled";
       inherit config;
       path = [
         "services"
@@ -63,11 +103,38 @@
         "enable"
       ];
       severity = "high";
-      rationale = "PulseAudio API compatibility for Firefox, Discord, desktop apps";
+      rationale = "No-legacy baseline should not expose PulseAudio compatibility layer";
+    })
+
+    (testLib.assertDisabled {
+      id = "audio-008";
+      name = "Pipewire JACK emulation disabled";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "jack"
+        "enable"
+      ];
+      severity = "medium";
+      rationale = "JACK stack stays out of shared baseline unless host explicitly needs it";
+    })
+
+    (testLib.assertDisabled {
+      id = "audio-009";
+      name = "RAOP firewall opening disabled";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "raopOpenFirewall"
+      ];
+      severity = "high";
+      rationale = "Shared baseline must not open network audio ports";
     })
 
     (testLib.assertEnabled {
-      id = "audio-005";
+      id = "audio-010";
       name = "WirePlumber session manager enabled";
       inherit config;
       path = [
@@ -81,7 +148,7 @@
     })
 
     (testLib.assertDisabled {
-      id = "audio-006";
+      id = "audio-011";
       name = "PulseAudio daemon disabled";
       inherit config;
       path = [
@@ -90,11 +157,11 @@
         "enable"
       ];
       severity = "critical";
-      rationale = "PulseAudio conflicts with Pipewire's compatibility layer";
+      rationale = "PulseAudio daemon must remain off in PipeWire-only baseline";
     })
 
     (testLib.assertEnabled {
-      id = "audio-007";
+      id = "audio-012";
       name = "RealtimeKit enabled";
       inherit config;
       path = [
