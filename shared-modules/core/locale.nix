@@ -7,6 +7,12 @@
   i18n = {
     # System language is English.
     defaultLocale = "en_US.UTF-8";
+    # Generate only the locales actually used by this system.
+    # Reduces locale archive size and avoids unnecessary locale payload.
+    supportedLocales = [
+      "en_US.UTF-8/UTF-8"
+      "de_CH.UTF-8/UTF-8"
+    ];
     extraLocaleSettings = {
       # Date/time formatting follows Swiss-German conventions
       LC_TIME = "de_CH.UTF-8";

@@ -160,6 +160,31 @@
         ;
     };
 
+  # Asserts that a string contains a specific substring.
+  assertStringContains = {
+    id,
+    name,
+    config,
+    path,
+    substring,
+    severity ? "high",
+    rationale ? "",
+  }: let
+    actual = lib.attrByPath path "" config;
+    passed = lib.isString actual && lib.hasInfix substring actual;
+  in
+    mkResult {
+      inherit
+        id
+        name
+        passed
+        actual
+        severity
+        rationale
+        ;
+      expected = "string containing ${builtins.toJSON substring}";
+    };
+
   # Runs a list of assertions and returns aggregated results.
   # Returns: { passed: bool, results: [result], failures: [result] }
   runAssertions = assertions: let

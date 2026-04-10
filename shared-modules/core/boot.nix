@@ -1,7 +1,17 @@
 # Boot configuration shared across all hosts.
 # Host-specific overrides belong in hosts/<hostname>/default.nix.
-{pkgs, ...}: {
+{
+  lib,
+  pkgs,
+  ...
+}: {
   boot = {
+    # Keep initrd logs quiet to reduce boot noise and avoid unnecessary console churn.
+    initrd.verbose = false;
+    # Limit kernel console verbosity (errors/warnings only).
+    # Use mkDefault to stay compatible with NixOS test instrumentation overrides.
+    consoleLogLevel = lib.mkDefault 3;
+
     loader = {
       systemd-boot = {
         # Use systemd-boot as UEFI bootloader (lightweight, no GRUB overhead).
@@ -16,7 +26,13 @@
       # Wait 3 seconds at boot menu before auto-selecting the default entry.
       timeout = 3;
     };
-    # Use the latest stable kernel
+    # Use the latest stable kernel
     kernelPackages = pkgs.linuxPackages_latest;
+    # Minimize boot-time log noise while keeping diagnostics available when needed.
+    kernelParams = [
+      "quiet"
+      "loglevel=3"
+      "udev.log_level=3"
+    ];
   };
 }

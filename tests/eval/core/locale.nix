@@ -39,8 +39,24 @@
       rationale = "System language set to English";
     })
 
-    (testLib.assertString {
+    (testLib.assertEqual {
       id = "locale-003";
+      name = "only required locales are generated";
+      inherit config;
+      path = [
+        "i18n"
+        "supportedLocales"
+      ];
+      expected = [
+        "en_US.UTF-8/UTF-8"
+        "de_CH.UTF-8/UTF-8"
+      ];
+      severity = "medium";
+      rationale = "Limits locale payload to the minimum set used by this system";
+    })
+
+    (testLib.assertString {
+      id = "locale-004";
       name = "LC_TIME uses Swiss-German format";
       inherit config;
       path = [
@@ -54,7 +70,7 @@
     })
 
     (testLib.assertString {
-      id = "locale-004";
+      id = "locale-005";
       name = "console keymap is Swiss German";
       inherit config;
       path = [
@@ -67,7 +83,7 @@
     })
 
     (testLib.assertString {
-      id = "locale-005";
+      id = "locale-006";
       name = "X11/Wayland keyboard layout is ch";
       inherit config;
       path = [
@@ -82,7 +98,7 @@
     })
 
     (testLib.assertString {
-      id = "locale-006";
+      id = "locale-007";
       name = "X11/Wayland keyboard variant is de";
       inherit config;
       path = [

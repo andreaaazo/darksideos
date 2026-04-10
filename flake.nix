@@ -69,6 +69,13 @@
       inherit nixpkgs home-manager impermanence;
     };
 
+    # VM tests: boot a headless machine and validate runtime behavior.
+    # Linux-only (runNixOSTest is Linux-only).
+    vmTests.${linuxSystem} = import ./tests/vm {
+      pkgs = pkgsLinux;
+      inherit home-manager impermanence;
+    };
+
     nixosConfigurations = {
       starkiller = nixpkgs.lib.nixosSystem {
         system = linuxSystem;

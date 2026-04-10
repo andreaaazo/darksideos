@@ -21,6 +21,7 @@ in {
     assertDisabled
     assertContains
     assertString
+    assertStringContains
     runAssertions
     mkCheckScript
     ;
