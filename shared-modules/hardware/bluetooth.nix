@@ -11,7 +11,7 @@
     # Explicitly pin BlueZ package used by the module.
     package = pkgs.bluez;
     # Drop legacy SAP plugin from shared baseline.
-    disabledPlugins = [ "sap" ];
+    disabledPlugins = ["sap"];
 
     settings = {
       General = {

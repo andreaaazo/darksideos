@@ -3,7 +3,11 @@
 vmLib.mkVmTest {
   name = "hardware-gpu-nvidia";
   nodeModules = [
-    ({lib, pkgs, ...}: {
+    ({
+      lib,
+      pkgs,
+      ...
+    }: {
       # VM fixture: qemu-vm overrides display driver for headless boot, and CI should stay free of
       # unfree NVIDIA payload downloads.
       # Explicit option-level policy for these knobs is covered in eval tests.
