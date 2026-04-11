@@ -121,6 +121,100 @@
       severity = "high";
       rationale = "Required for NVIDIA drivers and firmware blobs";
     })
+
+    (testLib.assertDisabled {
+      id = "nix-009";
+      name = "legacy channels disabled";
+      inherit config;
+      path = [
+        "nix"
+        "channel"
+        "enable"
+      ];
+      severity = "high";
+      rationale = "Shared baseline is flakes-only with no legacy channel workflow";
+    })
+
+    (testLib.assertEnabled {
+      id = "nix-010";
+      name = "GC timer is persistent";
+      inherit config;
+      path = [
+        "nix"
+        "gc"
+        "persistent"
+      ];
+      severity = "medium";
+      rationale = "Missed GC windows are executed after downtime to prevent store growth";
+    })
+
+    (testLib.assertEnabled {
+      id = "nix-011";
+      name = "store optimise timer enabled";
+      inherit config;
+      path = [
+        "nix"
+        "optimise"
+        "automatic"
+      ];
+      severity = "medium";
+      rationale = "Periodic deduplication keeps store lean over time";
+    })
+
+    (testLib.assertContains {
+      id = "nix-012";
+      name = "store optimise runs weekly";
+      inherit config;
+      path = [
+        "nix"
+        "optimise"
+        "dates"
+      ];
+      element = "weekly";
+      severity = "medium";
+      rationale = "Weekly dedup cadence balances cleanup and overhead";
+    })
+
+    (testLib.assertString {
+      id = "nix-013";
+      name = "max-jobs uses auto parallelism";
+      inherit config;
+      path = [
+        "nix"
+        "settings"
+        "max-jobs"
+      ];
+      expected = "auto";
+      severity = "medium";
+      rationale = "Uses host parallelism automatically for faster builds";
+    })
+
+    (testLib.assertEqual {
+      id = "nix-014";
+      name = "cores is auto-detected";
+      inherit config;
+      path = [
+        "nix"
+        "settings"
+        "cores"
+      ];
+      expected = 0;
+      severity = "medium";
+      rationale = "Lets Nix choose effective core count for each builder";
+    })
+
+    (testLib.assertDisabled {
+      id = "nix-015";
+      name = "source-build fallback disabled";
+      inherit config;
+      path = [
+        "nix"
+        "settings"
+        "fallback"
+      ];
+      severity = "high";
+      rationale = "Avoids unexpected local source builds when substitutes are unavailable";
+    })
   ];
 in
   pkgs.runCommand "eval-core-nix" {} (

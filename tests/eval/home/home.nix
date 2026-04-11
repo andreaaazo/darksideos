@@ -74,6 +74,53 @@
       severity = "high";
       rationale = "Home Manager needs correct path for symlinks";
     })
+
+    (testLib.assertDisabled {
+      id = "home-005";
+      name = "nixpkgs release check disabled for andrea";
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "home"
+        "enableNixpkgsReleaseCheck"
+      ];
+      severity = "medium";
+      rationale = "Shared baseline keeps activation lean by disabling release mismatch check noise";
+    })
+
+    (testLib.assertEnabled {
+      id = "home-006";
+      name = "Home Manager program enabled for andrea";
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "programs"
+        "home-manager"
+        "enable"
+      ];
+      severity = "high";
+      rationale = "Home Manager CLI should be explicit and reproducible in the user profile";
+    })
+
+    (testLib.assertDisabled {
+      id = "home-007";
+      name = "Home Manager manpages disabled for andrea";
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "manual"
+        "manpages"
+        "enable"
+      ];
+      severity = "medium";
+      rationale = "Shared baseline stays minimal by skipping generated Home Manager manpage payload";
+    })
   ];
 in
   pkgs.runCommand "eval-home-home" {} (

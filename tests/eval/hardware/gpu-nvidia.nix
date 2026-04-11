@@ -25,17 +25,17 @@
       rationale = "Proprietary driver required for CUDA, Wayland, full performance";
     })
 
-    (testLib.assertEnabled {
+    (testLib.assertDisabled {
       id = "gpu-nvidia-002";
-      name = "NVIDIA container toolkit enabled";
+      name = "NVIDIA container toolkit disabled by default";
       inherit config;
       path = [
         "hardware"
         "nvidia-container-toolkit"
         "enable"
       ];
-      severity = "high";
-      rationale = "Required for GPU access in Docker/Podman containers";
+      severity = "medium";
+      rationale = "Shared baseline should avoid container GPU runtime unless a host explicitly opts in";
     })
 
     (testLib.assertEnabled {
@@ -51,17 +51,17 @@
       rationale = "OpenGL/Vulkan required for GPU-accelerated rendering";
     })
 
-    (testLib.assertEnabled {
+    (testLib.assertDisabled {
       id = "gpu-nvidia-004";
-      name = "32-bit graphics libraries enabled";
+      name = "32-bit graphics libraries disabled";
       inherit config;
       path = [
         "hardware"
         "graphics"
         "enable32Bit"
       ];
-      severity = "high";
-      rationale = "Required for Steam, Wine, and 32-bit applications";
+      severity = "medium";
+      rationale = "Minimal shared baseline avoids 32-bit graphics compatibility by default";
     })
 
     (testLib.assertEnabled {
@@ -94,6 +94,34 @@
 
     (testLib.assertDisabled {
       id = "gpu-nvidia-007";
+      name = "NVIDIA finegrained power management disabled";
+      inherit config;
+      path = [
+        "hardware"
+        "nvidia"
+        "powerManagement"
+        "finegrained"
+      ];
+      severity = "medium";
+      rationale = "Shared profile excludes battery-focused runtime tuning";
+    })
+
+    (testLib.assertDisabled {
+      id = "gpu-nvidia-008";
+      name = "NVIDIA Dynamic Boost disabled";
+      inherit config;
+      path = [
+        "hardware"
+        "nvidia"
+        "dynamicBoost"
+        "enable"
+      ];
+      severity = "medium";
+      rationale = "Shared profile excludes battery/power balancing heuristics";
+    })
+
+    (testLib.assertDisabled {
+      id = "gpu-nvidia-009";
       name = "nvidia-settings GUI disabled";
       inherit config;
       path = [
@@ -106,7 +134,7 @@
     })
 
     (testLib.assertContains {
-      id = "gpu-nvidia-008";
+      id = "gpu-nvidia-010";
       name = "NVIDIA framebuffer kernel param set";
       inherit config;
       path = [
@@ -119,7 +147,7 @@
     })
 
     (testLib.assertContains {
-      id = "gpu-nvidia-009";
+      id = "gpu-nvidia-011";
       name = "NVIDIA modesetting kernel param set";
       inherit config;
       path = [
@@ -129,6 +157,32 @@
       element = "nvidia-drm.modeset=1";
       severity = "critical";
       rationale = "DRM modesetting required for Wayland";
+    })
+
+    (testLib.assertEnabled {
+      id = "gpu-nvidia-012";
+      name = "NVIDIA open kernel module path enabled";
+      inherit config;
+      path = [
+        "hardware"
+        "nvidia"
+        "open"
+      ];
+      severity = "high";
+      rationale = "Shared baseline should prefer modern open NVIDIA kernel module path";
+    })
+
+    (testLib.assertStringContains {
+      id = "gpu-nvidia-013";
+      name = "NVIDIA profiling restriction modprobe option set";
+      inherit config;
+      path = [
+        "boot"
+        "extraModprobeConfig"
+      ];
+      substring = "options nvidia NVreg_RestrictProfilingToAdminUsers=1";
+      severity = "high";
+      rationale = "GPU profiling interfaces should stay restricted to privileged users";
     })
   ];
 in

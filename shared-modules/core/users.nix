@@ -14,13 +14,15 @@
       andrea = {
         # Creates a regular user with home directory, login shell, and UID in the normal range (1000+).
         isNormalUser = true;
+        # Keep UID stable across rebuilds and impermanence resets.
+        uid = 1000;
         # Human-readable name shown in display managers and finger output.
         description = "Andrea";
+        # Restrict home directory access to the account owner.
+        homeMode = "0700";
 
         extraGroups = [
           "wheel" # Grants sudo privileges.
-          "networkmanager" # Allows managing network connections without sudo.
-          "video" # Grants direct GPU device access (required for Wayland compositors and GPU-accelerated apps).
         ];
         # Reads password hash from a file on the persistent volume
         # Generate with: nix-shell -p mkpasswd --run 'mkpasswd -m sha-512'
@@ -37,5 +39,18 @@
     wheelNeedsPassword = true;
     # Only wheel group members can execute sudo (non-wheel users can't even attempt it).
     execWheelOnly = true;
+    # Harden sudo behavior for privacy and strict privilege boundaries.
+    extraConfig = ''
+      Defaults use_pty
+      Defaults timestamp_timeout=0
+      Defaults passwd_tries=3
+      Defaults env_reset
+      Defaults umask=0077
+    '';
+  };
+
+  security.pam.services.su = {
+    # Only wheel users may use su.
+    requireWheel = true;
   };
 }

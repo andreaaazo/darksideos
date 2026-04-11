@@ -4,6 +4,8 @@
   xdg.portal = {
     # Enables the XDG Desktop Portal D-Bus service that apps use for sandboxed access to screen capture, file dialogs, and notifications.
     enable = true;
+    # Force xdg-open to go through portal path for consistent sandbox-safe behavior.
+    xdgOpenUsePortal = true;
 
     extraPortals = with pkgs; [
       # Hyprland-native portal backend for screen sharing, window/output selection, and compositor integration.
@@ -11,6 +13,19 @@
       # GTK portal backend that renders "Open file" / "Save as" dialogs and print dialogs for all apps.
       xdg-desktop-portal-gtk
     ];
+
+    # Explicit backend routing for deterministic behavior on xdg-desktop-portal >= 1.17.
+    config.common = {
+      default = [
+        "hyprland"
+        "gtk"
+      ];
+      "org.freedesktop.impl.portal.ScreenCast" = ["hyprland"];
+      "org.freedesktop.impl.portal.Screenshot" = ["hyprland"];
+      "org.freedesktop.impl.portal.RemoteDesktop" = ["hyprland"];
+      "org.freedesktop.impl.portal.FileChooser" = ["gtk"];
+      "org.freedesktop.impl.portal.Settings" = ["gtk"];
+    };
   };
 
   # Enables D-Bus system message bus required by XDG portals, polkit, NetworkManager, and most desktop services to communicate.

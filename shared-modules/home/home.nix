@@ -16,7 +16,14 @@
         homeDirectory = "/home/andrea";
         # Reads the system-level stateVersion so HM uses the same migration baseline.
         inherit (config.system) stateVersion;
+        # Skip nixpkgs release mismatch checks in activation to reduce noise and overhead.
+        enableNixpkgsReleaseCheck = false;
       };
+
+      # Install Home Manager CLI in user profile for deterministic self-management commands.
+      programs.home-manager.enable = true;
+      # Keep shared baseline minimal and avoid generating Home Manager manpages.
+      manual.manpages.enable = false;
 
       imports = [
         # Loads user-level modules (shell, git, editor, etc.) from the modules/ subdirectory.

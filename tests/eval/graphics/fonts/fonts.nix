@@ -82,6 +82,32 @@
       severity = "high";
       rationale = "Consistent emoji rendering across all apps";
     })
+
+    (testLib.assertDisabled {
+      id = "fonts-006";
+      name = "bitmap fonts are disabled";
+      inherit config;
+      path = [
+        "fonts"
+        "fontconfig"
+        "allowBitmaps"
+      ];
+      severity = "high";
+      rationale = "Rejecting bitmap fonts avoids legacy fallback rendering";
+    })
+
+    (testLib.assertDisabled {
+      id = "fonts-007";
+      name = "user fontconfig overrides are disabled";
+      inherit config;
+      path = [
+        "fonts"
+        "fontconfig"
+        "includeUserConf"
+      ];
+      severity = "high";
+      rationale = "Shared baseline should not be bypassed by per-user fontconfig files";
+    })
   ];
 in
   pkgs.runCommand "eval-graphics-fonts" {} (

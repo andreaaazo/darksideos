@@ -1,22 +1,32 @@
-# Pipewire audio stack with ALSA/PulseAudio compatibility.
+# Minimal PipeWire audio stack.
 # Host-specific overrides belong in hosts/<hostname>/default.nix.
 {
   services.pipewire = {
-    # Installs Pipewire and starts the audio/video daemon that replaces PulseAudio and ALSA.
+    # Enables PipeWire as primary modern audio stack.
     enable = true;
-    # Adds ALSA compatibility layer so apps using raw ALSA API (games, low-level audio tools) output through Pipewire.
+    # Explicitly set audio mode instead of relying on implicit defaults.
+    audio.enable = true;
+    # Keep daemon socket-activated: zero idle bloat until clients connect.
+    socketActivation = true;
+    # Keep per-user service model; do not run a shared system daemon.
+    systemWide = false;
+    # Keep ALSA compatibility layer for native ALSA clients.
     alsa.enable = true;
-    # Installs 32-bit ALSA libraries for 32-bit apps (Steam, Wine).
-    alsa.support32Bit = true;
-    # Adds PulseAudio compatibility layer so apps using PulseAudio API (Firefox, Discord, most desktop apps) output through Pipewire.
-    pulse.enable = true;
-    # Starts WirePlumber, the session manager that handles audio device routing, policy, and hotplug for Pipewire.
-    wireplumber.enable = true; # Session manager for Pipewire
+    # Keep baseline lean: no 32-bit audio compatibility in shared profile.
+    alsa.support32Bit = false;
+    # Disable Pulse emulation for no-legacy baseline.
+    pulse.enable = false;
+    # Disable JACK emulation in shared baseline.
+    jack.enable = false;
+    # Keep network audio ports closed in shared baseline.
+    raopOpenFirewall = false;
+    # WirePlumber policy/session manager for PipeWire.
+    wireplumber.enable = true;
   };
 
-  # Explicitly disables PulseAudio daemon to prevent conflict with Pipewire's PulseAudio compatibility layer.
+  # Explicitly disable PulseAudio daemon.
   services.pulseaudio.enable = false;
 
-  # Enables RealtimeKit, a D-Bus service that grants real-time scheduling priority to Pipewire (prevents audio crackling and latency).
+  # Realtime scheduling delegation for low-latency stable audio.
   security.rtkit.enable = true;
 }

@@ -78,6 +78,92 @@
       severity = "high";
       rationale = "Portal backend selection depends on desktop name";
     })
+
+    (testLib.assertEqual {
+      id = "hyprland-006";
+      name = "NIXOS_OZONE_WL is enabled";
+      inherit config;
+      path = [
+        "environment"
+        "sessionVariables"
+        "NIXOS_OZONE_WL"
+      ];
+      expected = "1";
+      severity = "high";
+      rationale = "Chromium/Electron must use native Wayland path";
+    })
+
+    (testLib.assertEqual {
+      id = "hyprland-007";
+      name = "MOZ_ENABLE_WAYLAND is enabled";
+      inherit config;
+      path = [
+        "environment"
+        "sessionVariables"
+        "MOZ_ENABLE_WAYLAND"
+      ];
+      expected = "1";
+      severity = "high";
+      rationale = "Firefox should prefer native Wayland backend";
+    })
+
+    (testLib.assertEnabled {
+      id = "hyprland-008";
+      name = "UWSM mode enabled";
+      inherit config;
+      path = [
+        "programs"
+        "hyprland"
+        "withUWSM"
+      ];
+      severity = "high";
+      rationale = "Shared baseline should use modern Hyprland session lifecycle";
+    })
+
+    (testLib.assertDisabled {
+      id = "hyprland-009";
+      name = "Hyprland systemd PATH patch disabled";
+      inherit config;
+      path = [
+        "programs"
+        "hyprland"
+        "systemd"
+        "setPath"
+        "enable"
+      ];
+      severity = "medium";
+      rationale = "Keep environment minimal and avoid PATH mutation helper";
+    })
+
+    (testLib.assertStringContains {
+      id = "hyprland-010";
+      name = "Hyprland package explicitly selected";
+      inherit config;
+      path = [
+        "programs"
+        "hyprland"
+        "package"
+        "outPath"
+      ];
+      substring = "hyprland-";
+      severity = "medium";
+      rationale = "Package source must be explicitly pinned in shared module";
+    })
+
+    (testLib.assertStringContains {
+      id = "hyprland-011";
+      name = "Hyprland portal package explicitly selected";
+      inherit config;
+      path = [
+        "programs"
+        "hyprland"
+        "portalPackage"
+        "outPath"
+      ];
+      substring = "xdg-desktop-portal-hyprland-";
+      severity = "medium";
+      rationale = "Portal backend package must be explicit and deterministic";
+    })
   ];
 in
   pkgs.runCommand "eval-graphics-hyprland" {} (

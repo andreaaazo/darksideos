@@ -108,9 +108,9 @@
       rationale = "User needs sudo privileges";
     })
 
-    (testLib.assertContains {
+    (testLib.assertEqual {
       id = "users-008";
-      name = "andrea in video group";
+      name = "andrea has minimal privileged groups";
       inherit config;
       path = [
         "users"
@@ -118,9 +118,11 @@
         "andrea"
         "extraGroups"
       ];
-      element = "video";
+      expected = [
+        "wheel"
+      ];
       severity = "medium";
-      rationale = "Required for Wayland compositors and GPU access";
+      rationale = "Shared core should keep only essential privilege group; host adds hardware/network groups";
     })
 
     (testLib.assertString {
@@ -136,6 +138,121 @@
       expected = "/persist/secrets/pc-password";
       severity = "high";
       rationale = "Password hash stored on persistent volume for impermanence";
+    })
+
+    (testLib.assertEqual {
+      id = "users-010";
+      name = "andrea uid is explicit and stable";
+      inherit config;
+      path = [
+        "users"
+        "users"
+        "andrea"
+        "uid"
+      ];
+      expected = 1000;
+      severity = "high";
+      rationale = "Stable UID avoids drift and ownership surprises across rebuilds";
+    })
+
+    (testLib.assertString {
+      id = "users-011";
+      name = "andrea home permissions are owner-only";
+      inherit config;
+      path = [
+        "users"
+        "users"
+        "andrea"
+        "homeMode"
+      ];
+      expected = "0700";
+      severity = "high";
+      rationale = "Home directory must default to private access only";
+    })
+
+    (testLib.assertEnabled {
+      id = "users-012";
+      name = "su is restricted to wheel users";
+      inherit config;
+      path = [
+        "security"
+        "pam"
+        "services"
+        "su"
+        "requireWheel"
+      ];
+      severity = "high";
+      rationale = "Prevents non-wheel users from attempting su privilege escalation";
+    })
+
+    (testLib.assertStringContains {
+      id = "users-013";
+      name = "sudo requires PTY";
+      inherit config;
+      path = [
+        "security"
+        "sudo"
+        "extraConfig"
+      ];
+      substring = "Defaults use_pty";
+      severity = "high";
+      rationale = "PTY requirement improves auditability and mitigates TTY-less abuse";
+    })
+
+    (testLib.assertStringContains {
+      id = "users-014";
+      name = "sudo credential timestamp is zero";
+      inherit config;
+      path = [
+        "security"
+        "sudo"
+        "extraConfig"
+      ];
+      substring = "Defaults timestamp_timeout=0";
+      severity = "high";
+      rationale = "Each sudo command requires authentication, reducing privilege persistence";
+    })
+
+    (testLib.assertStringContains {
+      id = "users-015";
+      name = "sudo password retries are capped";
+      inherit config;
+      path = [
+        "security"
+        "sudo"
+        "extraConfig"
+      ];
+      substring = "Defaults passwd_tries=3";
+      severity = "high";
+      rationale = "Limits repeated password guessing attempts during privilege escalation";
+    })
+
+    (testLib.assertStringContains {
+      id = "users-016";
+      name = "sudo environment is reset";
+      inherit config;
+      path = [
+        "security"
+        "sudo"
+        "extraConfig"
+      ];
+      substring = "Defaults env_reset";
+      severity = "medium";
+      rationale = "Drops untrusted environment state before running privileged commands";
+    })
+
+    (testLib.assertStringContains {
+      id = "users-017";
+      name = "sudo enforces restrictive umask";
+      inherit config;
+      path = [
+        "security"
+        "sudo"
+        "extraConfig"
+      ];
+      substring = "Defaults umask=0077";
+      severity = "high";
+      rationale = "Privileged command outputs should not be world-readable by default";
     })
   ];
 in
