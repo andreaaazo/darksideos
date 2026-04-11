@@ -16,23 +16,24 @@
     directories = [
       # UID/GID allocation state (without this, user IDs could shift after reboot and file ownership breaks).
       "/var/lib/nixos"
-      # Preserved core dumps for debugging crashes that happened in previous sessions.
-      "/var/lib/systemd/coredump"
       # Timer last-trigger timestamps (without this, weekly GC and other timers re-fire on every boot).
       "/var/lib/systemd/timers"
       # NetworkManager internal state: WiFi passwords, DHCP leases, VPN configurations.
       "/var/lib/NetworkManager"
       # Connection keyfiles on disk (the actual .nmconnection config files NM reads at startup).
       "/etc/NetworkManager/system-connections"
-      # Bluetooth pairing keys (without this, every paired device must be re-paired after each reboot).
-      "/var/lib/bluetooth"
       # SSH host keys (if these change every boot, clients see a MITM warning and refuse to connect).
       "/etc/ssh"
+      # Optional host opt-ins (disabled in shared minimal baseline):
+      # "/var/lib/bluetooth"
+      # "/var/lib/systemd/coredump"
     ];
 
     files = [
       # Stable 128-bit machine identifier used by systemd journal, D-Bus, and DHCP client for consistent identity across reboots.
       "/etc/machine-id"
+      # System entropy seed persisted across reboot for early-boot randomness continuity.
+      "/var/lib/systemd/random-seed"
     ];
   };
 }

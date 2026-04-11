@@ -1,9 +1,5 @@
 # Eval tests for shared-modules/impermanence/impermanence.nix
-# Verifies system-level persistence declarations.
-#
-# Note: impermanence has complex internal transformations that make
-# testing individual directories difficult. We test the core settings
-# and verify the directories list has the expected count.
+# Verifies minimal system-level persistence declarations.
 {
   pkgs,
   testLib,
@@ -16,8 +12,6 @@
   };
 
   persistConfig = config.environment.persistence."/persist";
-
-  # Count directories and files from raw definitions
   dirCount = builtins.length persistConfig.directories;
   fileCount = builtins.length persistConfig.files;
 
@@ -38,22 +32,22 @@
 
     (testLib.mkResult {
       id = "impermanence-002";
-      name = "Expected directories count";
-      passed = dirCount == 7;
-      expected = 7;
+      name = "Expected minimal directories count";
+      passed = dirCount == 5;
+      expected = 5;
       actual = dirCount;
       severity = "critical";
-      rationale = "7 directories: nixos, coredump, timers, NetworkManager (2), bluetooth, ssh";
+      rationale = "Minimal baseline keeps only essential system state paths";
     })
 
     (testLib.mkResult {
       id = "impermanence-003";
       name = "Expected files count";
-      passed = fileCount == 1;
-      expected = 1;
+      passed = fileCount == 2;
+      expected = 2;
       actual = fileCount;
       severity = "critical";
-      rationale = "1 file: machine-id";
+      rationale = "2 files: machine-id and random-seed";
     })
   ];
 in

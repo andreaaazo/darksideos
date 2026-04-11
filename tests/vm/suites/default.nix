@@ -4,3 +4,4 @@
   // (import ./graphics {inherit vmLib;})
   // (import ./home {inherit vmLib;})
   // (import ./hardware {inherit vmLib;})
+  // (import ./impermanence {inherit vmLib;})
