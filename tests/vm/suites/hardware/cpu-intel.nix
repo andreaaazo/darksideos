@@ -30,17 +30,17 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-cpu-intel-003",
-        "kvm_intel module is loaded in running kernel",
-        "lsmod | awk '{print $1}' | grep -x 'kvm_intel' >/dev/null",
+        "kvm_intel runtime state follows VMX capability",
+        "sh -c 'if grep -qw vmx /proc/cpuinfo; then lsmod | grep -q \"^kvm_intel[[:space:]]\"; else ! lsmod | grep -q \"^kvm_intel[[:space:]]\"; fi'",
         severity="high",
-        rationale="Intel virtualization module should be active, not only present on disk",
+        rationale="CI VMs may expose CPUs without VMX; module should load only when hardware capability is present",
     )
     assert_command(
         "vm-cpu-intel-004",
-        "kvm_intel sysfs parameter interface exists",
-        "test -d /sys/module/kvm_intel/parameters",
+        "kvm_intel sysfs interface follows VMX capability",
+        "sh -c 'if grep -qw vmx /proc/cpuinfo; then test -d /sys/module/kvm_intel/parameters; else test ! -d /sys/module/kvm_intel/parameters; fi'",
         severity="medium",
-        rationale="Loaded Intel virtualization module should expose runtime tuning interface",
+        rationale="Runtime kvm_intel parameter interface exists only when module is actually loadable on current CPU",
     )
     assert_command(
         "vm-cpu-intel-005",
