@@ -4,16 +4,12 @@ vmLib.mkVmTest {
   name = "hardware-gpu-nvidia";
   nodeModules = [
     ({lib, pkgs, ...}: {
-      # VM fixture: qemu-vm forces non-NVIDIA video driver in headless tests.
-      # Keep nvidia-container-toolkit assertion from aborting evaluation.
+      # VM fixture: qemu-vm overrides display driver for headless boot, and CI should stay free of
+      # unfree NVIDIA payload downloads.
+      # Explicit option-level policy for these knobs is covered in eval tests.
       hardware = {
-        # VM fixture: avoid unfree NVIDIA payload in VM closure while preserving toolkit wiring checks.
+        nvidia.open = lib.mkForce false;
         nvidia.package = lib.mkForce pkgs.glibc;
-        nvidia-container-toolkit = {
-          suppressNvidiaDriverAssertion = lib.mkForce true;
-          mount-nvidia-executables = lib.mkForce false;
-          mount-nvidia-docker-1-directories = lib.mkForce false;
-        };
       };
     })
     ../../../../shared-modules/hardware/gpu-nvidia.nix
@@ -45,17 +41,17 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-gpu-nvidia-004",
-        "NVIDIA CDI generator service unit is installed",
-        "systemctl cat nvidia-container-toolkit-cdi-generator.service >/dev/null",
-        severity="high",
-        rationale="Container GPU integration service must be materialized by nvidia-container-toolkit",
+        "NVIDIA container toolkit unit is not installed by default",
+        "! systemctl cat nvidia-container-toolkit-cdi-generator.service >/dev/null 2>&1",
+        severity="medium",
+        rationale="Shared baseline should not install container GPU runtime unless host opts in",
     )
     assert_command(
         "vm-gpu-nvidia-005",
-        "NVIDIA CDI generator service uses nvidia-cdi-generator",
-        "systemctl show -p ExecStart --value nvidia-container-toolkit-cdi-generator.service | grep -F 'nvidia-cdi-generator' >/dev/null",
-        severity="high",
-        rationale="CDI generation pipeline should be wired to toolkit generator entrypoint",
+        "NVIDIA container runtime binary is absent",
+        "! command -v nvidia-container-runtime >/dev/null",
+        severity="medium",
+        rationale="Container GPU runtime should not be present in minimal shared baseline",
     )
     assert_command(
         "vm-gpu-nvidia-006",
@@ -66,38 +62,38 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-gpu-nvidia-007",
-        "32-bit OpenGL driver runtime path exists",
-        "test -d /run/opengl-driver-32/lib",
-        severity="high",
-        rationale="32-bit graphics compatibility path should be materialized",
+        "32-bit OpenGL driver runtime path is absent",
+        "! test -d /run/opengl-driver-32/lib",
+        severity="medium",
+        rationale="Minimal baseline should avoid 32-bit graphics compatibility payload",
     )
     assert_command(
         "vm-gpu-nvidia-008",
-        "NVIDIA CDI generator is enabled for multi-user target",
-        "test -L /etc/systemd/system/multi-user.target.wants/nvidia-container-toolkit-cdi-generator.service",
+        "NVIDIA profiling interface restriction is materialized in modprobe config",
+        "grep -R -E '^[[:space:]]*options[[:space:]]+nvidia[[:space:]]+NVreg_RestrictProfilingToAdminUsers=1$' /etc/modprobe.d >/dev/null",
         severity="high",
-        rationale="GPU CDI inventory should be generated automatically on boot",
+        rationale="GPU profiling controls should remain restricted to privileged users",
     )
     assert_command(
         "vm-gpu-nvidia-009",
-        "NVIDIA CDI generator runtime directory is configured",
-        "systemctl show -p RuntimeDirectory --value nvidia-container-toolkit-cdi-generator.service | grep -x 'cdi'",
+        "NVIDIA dynamic boost service is not installed",
+        "! systemctl cat nvidia-powerd.service >/dev/null 2>&1",
         severity="medium",
-        rationale="CDI generator should declare explicit runtime output directory",
+        rationale="Shared profile excludes battery/power-balancing daemon by default",
     )
     assert_command(
         "vm-gpu-nvidia-010",
-        "udev rule for NVIDIA CDI generator restart is installed",
-        "grep -R -F 'nvidia-container-toolkit-cdi-generator.service' /etc/udev/rules.d >/dev/null",
+        "no NVIDIA CDI udev autostart rule is installed",
+        "! grep -R -F 'nvidia-container-toolkit-cdi-generator.service' /etc/udev/rules.d >/dev/null",
         severity="medium",
-        rationale="Hotplug path should trigger CDI refresh when NVIDIA devices appear",
+        rationale="Container GPU hotplug wiring should be absent when toolkit is disabled",
     )
     assert_command(
         "vm-gpu-nvidia-011",
-        "NVIDIA CDI generator unit is loaded in systemd",
-        "systemctl show -p LoadState --value nvidia-container-toolkit-cdi-generator.service | grep -x 'loaded'",
-        severity="high",
-        rationale="Systemd must recognize CDI generator unit for container GPU integration",
+        "NVIDIA finegrained power-management udev rules are absent",
+        "! grep -R -E 'ATTR\\{power/control\\}=\"auto\"' /etc/udev/rules.d >/dev/null",
+        severity="medium",
+        rationale="Shared profile excludes battery-focused runtime PM udev rules",
     )
   '';
 }
