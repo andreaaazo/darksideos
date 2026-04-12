@@ -1,5 +1,8 @@
 # Eval suites for shared-modules/hardware/*
-{pkgs, testLib}: {
+{
+  pkgs,
+  testLib,
+}: {
   eval-hardware-audio = import ./audio.nix {inherit pkgs testLib;};
   eval-hardware-bluetooth = import ./bluetooth.nix {inherit pkgs testLib;};
   eval-hardware-cpu-intel = import ./cpu-intel.nix {inherit pkgs testLib;};

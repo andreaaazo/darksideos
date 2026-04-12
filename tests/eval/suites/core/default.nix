@@ -1,5 +1,8 @@
 # Eval suites for shared-modules/core/*
-{pkgs, testLib}: {
+{
+  pkgs,
+  testLib,
+}: {
   eval-core-boot = import ./boot.nix {inherit pkgs testLib;};
   eval-core-locale = import ./locale.nix {inherit pkgs testLib;};
   eval-core-networking = import ./networking.nix {inherit pkgs testLib;};

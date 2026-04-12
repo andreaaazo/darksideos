@@ -19,27 +19,31 @@
     ];
   };
 
-  hyprpaperConf = pkgs.lib.attrByPath [
-    "home-manager"
-    "users"
-    "andrea"
-    "xdg"
-    "configFile"
-    "hypr/hyprpaper.conf"
-    "text"
-  ] "" config;
+  hyprpaperConf =
+    pkgs.lib.attrByPath [
+      "home-manager"
+      "users"
+      "andrea"
+      "xdg"
+      "configFile"
+      "hypr/hyprpaper.conf"
+      "text"
+    ] ""
+    config;
 
-  hyprpaperWantedBy = pkgs.lib.attrByPath [
-    "home-manager"
-    "users"
-    "andrea"
-    "systemd"
-    "user"
-    "services"
-    "hyprpaper"
-    "Install"
-    "WantedBy"
-  ] [] config;
+  hyprpaperWantedBy =
+    pkgs.lib.attrByPath [
+      "home-manager"
+      "users"
+      "andrea"
+      "systemd"
+      "user"
+      "services"
+      "hyprpaper"
+      "Install"
+      "WantedBy"
+    ] []
+    config;
 
   hyprpaperPlaceholderPath = ../../../../../../shared-modules/home/modules/hyprpaper/wallpaper/wallpaper.jpg;
 
