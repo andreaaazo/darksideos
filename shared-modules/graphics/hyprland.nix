@@ -19,14 +19,22 @@
   # PolicyKit for privileged desktop actions without root session.
   security.polkit.enable = true;
 
-  environment.sessionVariables = {
-    # Explicit Wayland session identity.
-    XDG_SESSION_TYPE = "wayland";
-    # Desktop identity for portals and desktop-aware apps.
-    XDG_CURRENT_DESKTOP = "Hyprland";
-    # Chromium/Electron Ozone Wayland backend toggle.
-    NIXOS_OZONE_WL = "1";
-    # Firefox native Wayland backend toggle.
-    MOZ_ENABLE_WAYLAND = "1";
+  environment = {
+    # Install only the selected cursor theme package in shared baseline.
+    systemPackages = [pkgs.phinger-cursors];
+
+    sessionVariables = {
+      # Explicit Wayland session identity.
+      XDG_SESSION_TYPE = "wayland";
+      # Desktop identity for portals and desktop-aware apps.
+      XDG_CURRENT_DESKTOP = "Hyprland";
+      # Chromium/Electron Ozone Wayland backend toggle.
+      NIXOS_OZONE_WL = "1";
+      # Firefox native Wayland backend toggle.
+      MOZ_ENABLE_WAYLAND = "1";
+      # Global cursor theme policy (size remains user-level in Home Manager).
+      XCURSOR_THEME = "phinger-cursors";
+      HYPRCURSOR_THEME = "phinger-cursors";
+    };
   };
 }

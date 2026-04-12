@@ -2,6 +2,12 @@
 # This file configures HM itself and imports user-level modules.
 # All user packages and dotfiles go in home/modules/, not here.
 {config, ...}: {
+  # Required by Home Manager when useUserPackages=true and desktop entries/portal files come from user profile.
+  environment.pathsToLink = [
+    "/share/applications"
+    "/share/xdg-desktop-portal"
+  ];
+
   home-manager = {
     # Home Manager uses the system's nixpkgs instance instead of evaluating its own (one nixpkgs eval, faster builds, no version mismatch).
     useGlobalPkgs = true;
