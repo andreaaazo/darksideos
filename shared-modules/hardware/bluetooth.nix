@@ -44,4 +44,19 @@
       };
     };
   };
+
+  # Bluetooth audio quality baseline for PipeWire/WirePlumber.
+  # Applies only when Bluetooth audio is used; no host/device-specific profile here.
+  services.pipewire.wireplumber.extraConfig."51-bluez-audio-quality" = {
+    "monitor.bluez.properties" = {
+      # Enable higher-quality SBC mode when supported by both sides.
+      "bluez5.enable-sbc-xq" = true;
+      # Enable mSBC wideband profile for headset-call quality.
+      "bluez5.enable-msbc" = true;
+      # Keep hardware volume synchronization enabled for stable gain control.
+      "bluez5.enable-hw-volume" = true;
+      # Prevent automatic profile switching to low-quality headset mode.
+      "bluez5.autoswitch-profile" = false;
+    };
+  };
 }

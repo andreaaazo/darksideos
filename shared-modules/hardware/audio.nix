@@ -22,6 +22,34 @@
     raopOpenFirewall = false;
     # WirePlumber policy/session manager for PipeWire.
     wireplumber.enable = true;
+
+    # High-fidelity playback defaults:
+    # - fixed fallback clock at 48 kHz
+    # - wide allowed-rates set for transparent source-matched switching
+    # - large quantum for playback stability at high sample rates
+    # - max-quality resampling path
+    extraConfig.pipewire."95-high-quality-audio" = {
+      "context.properties" = {
+        "default.clock.rate" = 48000;
+        "default.clock.allowed-rates" = [
+          44100
+          48000
+          88200
+          96000
+          176400
+          192000
+          352800
+          384000
+        ];
+        "default.clock.quantum" = 2048;
+        "default.clock.min-quantum" = 1024;
+        "default.clock.max-quantum" = 8192;
+      };
+
+      "stream.properties" = {
+        "resample.quality" = 15;
+      };
+    };
   };
 
   # Explicitly disable PulseAudio daemon.
