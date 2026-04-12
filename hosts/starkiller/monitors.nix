@@ -1,5 +1,6 @@
 {
-  wayland.windowManager.hyprland.settings.monitorv2 = {
+  # Host-specific monitor tuning for Andrea's Hyprland profile.
+  home-manager.users.andrea.wayland.windowManager.hyprland.settings.monitorv2 = {
     # PORT
     # Target DisplayPort-3
     output = "DP-3";
