@@ -6,7 +6,7 @@
 }: let
   config = testLib.getConfig {
     modules = [
-      ../../../shared-modules/graphics/portal.nix
+      ../../../../shared-modules/graphics/portal.nix
     ];
   };
 

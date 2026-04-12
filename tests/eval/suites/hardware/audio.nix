@@ -1,4 +1,4 @@
-# Eval tests for shared-modules/graphics/audio.nix
+# Eval tests for shared-modules/hardware/audio.nix
 # Verifies minimal no-legacy PipeWire baseline.
 {
   pkgs,
@@ -6,7 +6,7 @@
 }: let
   config = testLib.getConfig {
     modules = [
-      ../../../shared-modules/graphics/audio.nix
+      ../../../../shared-modules/hardware/audio.nix
     ];
   };
 
@@ -172,11 +172,128 @@
       severity = "high";
       rationale = "Grants real-time priority to prevent audio crackling";
     })
+
+    (testLib.assertEqual {
+      id = "audio-013";
+      name = "Pipewire fallback clock rate is 48 kHz";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "extraConfig"
+        "pipewire"
+        "95-high-quality-audio"
+        "context.properties"
+        "default.clock.rate"
+      ];
+      expected = 48000;
+      severity = "high";
+      rationale = "Predictable fallback rate keeps baseline tuned for modern DAC chains";
+    })
+
+    (testLib.assertEqual {
+      id = "audio-014";
+      name = "Pipewire allowed rates cover hi-fi and studio set";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "extraConfig"
+        "pipewire"
+        "95-high-quality-audio"
+        "context.properties"
+        "default.clock.allowed-rates"
+      ];
+      expected = [
+        44100
+        48000
+        88200
+        96000
+        176400
+        192000
+        352800
+        384000
+      ];
+      severity = "high";
+      rationale = "Source-matched rates reduce avoidable resampling drift on hi-res content";
+    })
+
+    (testLib.assertEqual {
+      id = "audio-015";
+      name = "Pipewire default quantum is set for stable playback";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "extraConfig"
+        "pipewire"
+        "95-high-quality-audio"
+        "context.properties"
+        "default.clock.quantum"
+      ];
+      expected = 2048;
+      severity = "high";
+      rationale = "Playback-optimized quantum reduces pops and glitches at high sample rates";
+    })
+
+    (testLib.assertEqual {
+      id = "audio-016";
+      name = "Pipewire minimum quantum is constrained";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "extraConfig"
+        "pipewire"
+        "95-high-quality-audio"
+        "context.properties"
+        "default.clock.min-quantum"
+      ];
+      expected = 1024;
+      severity = "high";
+      rationale = "Minimum quantum guardrail avoids unstable tiny buffers";
+    })
+
+    (testLib.assertEqual {
+      id = "audio-017";
+      name = "Pipewire maximum quantum is constrained";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "extraConfig"
+        "pipewire"
+        "95-high-quality-audio"
+        "context.properties"
+        "default.clock.max-quantum"
+      ];
+      expected = 8192;
+      severity = "high";
+      rationale = "Upper bound prevents runaway latency while preserving high-rate stability";
+    })
+
+    (testLib.assertEqual {
+      id = "audio-018";
+      name = "Pipewire resampler quality set to max precision";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "extraConfig"
+        "pipewire"
+        "95-high-quality-audio"
+        "stream.properties"
+        "resample.quality"
+      ];
+      expected = 15;
+      severity = "high";
+      rationale = "Highest resampler quality improves mathematical precision for conversion paths";
+    })
   ];
 in
-  pkgs.runCommand "eval-graphics-audio" {} (
+  pkgs.runCommand "eval-hardware-audio" {} (
     testLib.mkCheckScript {
-      name = "graphics/audio";
+      name = "hardware/audio";
       assertionResults = assertions;
     }
   )

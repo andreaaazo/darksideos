@@ -37,6 +37,10 @@
     darwinSystem = "x86_64-darwin";
 
     pkgsLinux = nixpkgs.legacyPackages.${linuxSystem};
+    pkgsLinuxUnfree = import nixpkgs {
+      system = linuxSystem;
+      config.allowUnfree = true;
+    };
     pkgsDarwin = nixpkgs.legacyPackages.${darwinSystem};
 
     # Shared modules for every host configuration
@@ -63,7 +67,7 @@
 
     # Eval tests: verify shared modules produce correct configuration.
     # Linux-only (nixosSystem is Linux-only).
-    evalTests.${linuxSystem} = import ./tests {
+    evalTests.${linuxSystem} = import ./tests/eval {
       pkgs = pkgsLinux;
       inherit (nixpkgs) lib;
       inherit nixpkgs home-manager impermanence;
@@ -72,7 +76,7 @@
     # VM tests: boot a headless machine and validate runtime behavior.
     # Linux-only (runNixOSTest is Linux-only).
     vmTests.${linuxSystem} = import ./tests/vm {
-      pkgs = pkgsLinux;
+      pkgs = pkgsLinuxUnfree;
       inherit home-manager impermanence;
     };
 

@@ -6,7 +6,7 @@
 }: let
   config = testLib.getConfig {
     modules = [
-      ../../../../shared-modules/graphics/fonts/fonts.nix
+      ../../../../../shared-modules/graphics/fonts/fonts.nix
     ];
   };
 

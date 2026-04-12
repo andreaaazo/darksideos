@@ -7,7 +7,7 @@
   # Evaluate only the locale module in isolation
   config = testLib.getConfig {
     modules = [
-      ../../../shared-modules/core/locale.nix
+      ../../../../shared-modules/core/locale.nix
     ];
   };
 

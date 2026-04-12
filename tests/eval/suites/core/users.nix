@@ -7,7 +7,7 @@
   # Evaluate only the users module in isolation
   config = testLib.getConfig {
     modules = [
-      ../../../shared-modules/core/users.nix
+      ../../../../shared-modules/core/users.nix
     ];
   };
 

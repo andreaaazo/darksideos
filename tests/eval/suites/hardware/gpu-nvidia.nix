@@ -6,7 +6,7 @@
 }: let
   config = testLib.getConfig {
     modules = [
-      ../../../shared-modules/hardware/gpu-nvidia.nix
+      ../../../../shared-modules/hardware/gpu-nvidia.nix
     ];
   };
 

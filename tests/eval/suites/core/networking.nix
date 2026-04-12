@@ -7,7 +7,7 @@
   # Evaluate only the networking module in isolation
   config = testLib.getConfig {
     modules = [
-      ../../../shared-modules/core/networking.nix
+      ../../../../shared-modules/core/networking.nix
     ];
   };
 

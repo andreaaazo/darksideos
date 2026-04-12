@@ -114,5 +114,26 @@ vmLib.mkVmTest {
         severity="high",
         rationale="Hyprland shared policy must not introduce startup failures",
     )
+    assert_command(
+        "vm-hyprland-016",
+        "XCURSOR_THEME is exported as phinger-cursors",
+        "grep -E '^export XCURSOR_THEME=\"phinger-cursors\"$' /etc/set-environment >/dev/null",
+        severity="high",
+        rationale="System cursor theme must be globally exported for deterministic desktop behavior",
+    )
+    assert_command(
+        "vm-hyprland-017",
+        "HYPRCURSOR_THEME is exported as phinger-cursors",
+        "grep -E '^export HYPRCURSOR_THEME=\"phinger-cursors\"$' /etc/set-environment >/dev/null",
+        severity="high",
+        rationale="Hyprland cursor theme should align with global cursor policy",
+    )
+    assert_command(
+        "vm-hyprland-018",
+        "Phinger cursor package is present in system closure",
+        "nix-store -q --references /run/current-system/sw | grep -i 'phinger-cursors' >/dev/null",
+        severity="high",
+        rationale="Selected cursor package should be retained in immutable system profile closure",
+    )
   '';
 }

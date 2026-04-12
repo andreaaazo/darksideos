@@ -1,9 +1,9 @@
-# VM test for shared-modules/graphics/audio.nix
+# VM test for shared-modules/hardware/audio.nix
 {vmLib}:
 vmLib.mkVmTest {
-  name = "graphics-audio";
+  name = "hardware-audio";
   nodeModules = [
-    ../../../../shared-modules/graphics/audio.nix
+    ../../../../shared-modules/hardware/audio.nix
   ];
 
   testScript = ''
@@ -102,6 +102,13 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-audio-014",
+        "high-quality PipeWire drop-in is materialized",
+        "test -f /etc/pipewire/pipewire.conf.d/95-high-quality-audio.conf",
+        severity="high",
+        rationale="PipeWire must receive declarative high-quality profile at runtime",
+    )
+    assert_command(
+        "vm-audio-015",
         "no failed units after audio policy activation",
         "test \"$(systemctl list-units --failed --plain --no-legend --all | wc -l)\" -eq 0",
         severity="high",

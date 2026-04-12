@@ -6,7 +6,7 @@
 }: let
   config = testLib.getConfig {
     modules = [
-      ../../../shared-modules/graphics/hyprland.nix
+      ../../../../shared-modules/graphics/hyprland.nix
     ];
   };
 
@@ -163,6 +163,47 @@
       substring = "xdg-desktop-portal-hyprland-";
       severity = "medium";
       rationale = "Portal backend package must be explicit and deterministic";
+    })
+
+    (testLib.assertEqual {
+      id = "hyprland-012";
+      name = "XCURSOR_THEME is set to Phinger";
+      inherit config;
+      path = [
+        "environment"
+        "sessionVariables"
+        "XCURSOR_THEME"
+      ];
+      expected = "phinger-cursors";
+      severity = "high";
+      rationale = "System cursor theme must be explicit and deterministic";
+    })
+
+    (testLib.assertEqual {
+      id = "hyprland-013";
+      name = "HYPRCURSOR_THEME is set to Phinger";
+      inherit config;
+      path = [
+        "environment"
+        "sessionVariables"
+        "HYPRCURSOR_THEME"
+      ];
+      expected = "phinger-cursors";
+      severity = "high";
+      rationale = "Hyprland cursor theme should align with X cursor policy";
+    })
+
+    (testLib.assertContains {
+      id = "hyprland-014";
+      name = "Phinger cursor package is installed system-wide";
+      inherit config;
+      path = [
+        "environment"
+        "systemPackages"
+      ];
+      element = pkgs.phinger-cursors;
+      severity = "high";
+      rationale = "Selected cursor theme package must be materialized in the immutable system profile";
     })
   ];
 in

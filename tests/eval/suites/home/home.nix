@@ -7,9 +7,10 @@
   config = testLib.getConfig {
     extraModules = [testLib.hmModule];
     modules = [
-      ../../../shared-modules/home/home.nix
+      ../../../../shared-modules/home/home.nix
       # Stub: define the andrea user so home-manager can resolve homeDirectory
       {
+        nixpkgs.config.allowUnfree = true;
         users.users.andrea = {
           isNormalUser = true;
           home = "/home/andrea";

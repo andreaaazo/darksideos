@@ -7,7 +7,7 @@
   config = testLib.getConfig {
     extraModules = [testLib.impermanenceModule];
     modules = [
-      ../../../shared-modules/impermanence/impermanence.nix
+      ../../../../shared-modules/impermanence/impermanence.nix
     ];
   };
 

@@ -7,7 +7,7 @@
   # Evaluate only the boot module in isolation
   config = testLib.getConfig {
     modules = [
-      ../../../shared-modules/core/boot.nix
+      ../../../../shared-modules/core/boot.nix
     ];
   };
 

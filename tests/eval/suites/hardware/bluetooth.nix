@@ -6,7 +6,7 @@
 }: let
   config = testLib.getConfig {
     modules = [
-      ../../../shared-modules/hardware/bluetooth.nix
+      ../../../../shared-modules/hardware/bluetooth.nix
     ];
   };
 
@@ -186,6 +186,74 @@
       ];
       severity = "high";
       rationale = "Network profile should keep security checks enabled";
+    })
+
+    (testLib.assertEnabled {
+      id = "bluetooth-013";
+      name = "WirePlumber Bluetooth enables SBC XQ";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "wireplumber"
+        "extraConfig"
+        "51-bluez-audio-quality"
+        "monitor.bluez.properties"
+        "bluez5.enable-sbc-xq"
+      ];
+      severity = "high";
+      rationale = "Shared Bluetooth baseline should expose higher-quality SBC mode";
+    })
+
+    (testLib.assertEnabled {
+      id = "bluetooth-014";
+      name = "WirePlumber Bluetooth enables mSBC";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "wireplumber"
+        "extraConfig"
+        "51-bluez-audio-quality"
+        "monitor.bluez.properties"
+        "bluez5.enable-msbc"
+      ];
+      severity = "high";
+      rationale = "Shared Bluetooth baseline should expose wideband headset codec support";
+    })
+
+    (testLib.assertEnabled {
+      id = "bluetooth-015";
+      name = "WirePlumber Bluetooth enables hardware volume sync";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "wireplumber"
+        "extraConfig"
+        "51-bluez-audio-quality"
+        "monitor.bluez.properties"
+        "bluez5.enable-hw-volume"
+      ];
+      severity = "medium";
+      rationale = "Hardware volume sync avoids gain mismatch between host and headset";
+    })
+
+    (testLib.assertDisabled {
+      id = "bluetooth-016";
+      name = "WirePlumber Bluetooth disables automatic low-quality profile switching";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "wireplumber"
+        "extraConfig"
+        "51-bluez-audio-quality"
+        "monitor.bluez.properties"
+        "bluez5.autoswitch-profile"
+      ];
+      severity = "high";
+      rationale = "Do not auto-switch from high-quality playback profile to headset profile";
     })
   ];
 in

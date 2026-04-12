@@ -7,7 +7,7 @@
   # Evaluate only the nix module in isolation
   config = testLib.getConfig {
     modules = [
-      ../../../shared-modules/core/nix.nix
+      ../../../../shared-modules/core/nix.nix
     ];
   };
 

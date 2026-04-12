@@ -6,7 +6,7 @@
 }: let
   config = testLib.getConfig {
     modules = [
-      ../../../shared-modules/hardware/cpu-intel.nix
+      ../../../../shared-modules/hardware/cpu-intel.nix
     ];
   };
 
