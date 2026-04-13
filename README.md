@@ -41,8 +41,8 @@ hosts/<hostname>/          Host-specific compositor: imports modules, declares o
 
 shared-modules/            Vertical slices — each module is fully standalone
   core/                    Boot, locale, networking, nix settings, users
-  graphics/                Hyprland, Pipewire, XDG portals, fonts
-  hardware/                CPU, GPU, Bluetooth — composable per host
+  graphics/                Hyprland, XDG portals, fonts
+  hardware/                CPU, GPU, Bluetooth, audio — composable per host
   home/                    Home Manager entry point + user modules
   impermanence/            Persistent state declarations
 ```
@@ -75,11 +75,11 @@ Each module is self-contained: no cross-references, no shared variables between 
 
 ### `graphics/`
 - **Hyprland** — Wayland compositor, XWayland disabled, Polkit enabled, session variables set
-- **Audio** — Pipewire with ALSA/PulseAudio compat (32-bit included), RealtimeKit for scheduling priority
 - **Portals** — XDG Desktop Portal with Hyprland + GTK backends, D-Bus enabled
 - **Fonts** — Default packages disabled. JetBrains Mono Nerd Font, Inter, Apple Color Emoji, DIN Next
 
 ### `hardware/`
+- **audio.nix** — PipeWire + WirePlumber, ALSA enabled, PulseAudio daemon disabled, no 32-bit ALSA
 - **cpu-intel.nix** — Microcode updates, redistributable firmware, `kvm-intel` module
 - **gpu-nvidia.nix** — Proprietary driver pinned to kernel, modesetting, VRAM suspend/resume, container toolkit, 32-bit libs
 - **bluetooth.nix** — BlueZ enabled, radio off at boot
@@ -136,17 +136,18 @@ tmpfs /                     RAM-backed, wiped on boot (50% RAM)
    ```nix
    { pkgs, ... }:
    {
-     imports = [
-       ./disk.nix
-       ./hardware-configuration.nix
-       ../../shared-modules/core
-       ../../shared-modules/graphics
-       ../../shared-modules/hardware/cpu-intel.nix  # or cpu-amd.nix
-       ../../shared-modules/hardware/gpu-nvidia.nix
-       ../../shared-modules/hardware/bluetooth.nix
-       ../../shared-modules/impermanence
-       ../../shared-modules/home
-     ];
+      imports = [
+        ./disk.nix
+        ./hardware-configuration.nix
+        ../../shared-modules/core
+        ../../shared-modules/graphics
+        ../../shared-modules/hardware/cpu-intel.nix  # or cpu-amd.nix
+        ../../shared-modules/hardware/gpu-nvidia.nix
+        ../../shared-modules/hardware/bluetooth.nix
+        ../../shared-modules/hardware/audio.nix
+        ../../shared-modules/impermanence
+        ../../shared-modules/home
+      ];
 
      # Host-specific overrides here
    }

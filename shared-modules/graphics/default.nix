@@ -6,7 +6,6 @@
 {...}: {
   imports = [
     ./hyprland.nix
-    ./audio.nix
     ./portal.nix
     ./fonts
   ];

@@ -1,0 +1,5 @@
+{
+  imports = [
+    ./wl-clipboard.nix
+  ];
+}

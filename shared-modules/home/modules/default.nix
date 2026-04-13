@@ -2,8 +2,15 @@
 # Each module is a standalone file imported here.
 {...}: {
   imports = [
-    # Example
-    # ./shell.nix
-    # ./git.nix
+    ./hyprland
+    ./hyprpaper
+    ./grim
+    ./features/screenshot
+    ./slurp
+    ./wl-clipboard
+    ./kitty
+    ./google-chrome
+    ./hyprpicker
+    ./spotify
   ];
 }
