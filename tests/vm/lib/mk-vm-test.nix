@@ -24,6 +24,9 @@ in
   pkgs.testers.runNixOSTest {
     name = "vm-${name}";
 
+    # Provide external module arguments for all nodes (required for modules that use args in `imports`).
+    node.specialArgs = {inherit zenBrowser;};
+
     nodes.machine = {...}: {
       imports =
         [baseModule]
