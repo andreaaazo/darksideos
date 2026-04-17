@@ -12,7 +12,6 @@
     ../../shared-modules/core
     ../../shared-modules/graphics
     ../../shared-modules/hardware/gpu-nvidia.nix
-    ../../shared-modules/hardware/cpu-base.nix
     ../../shared-modules/hardware/cpu-intel.nix
     ../../shared-modules/hardware/bluetooth.nix
     ../../shared-modules/hardware/audio.nix
