@@ -23,6 +23,13 @@
     impermanence = {
       url = "github:nix-community/impermanence";
     };
+
+    # Zen Browser flake for declarative browser package and Home Manager integration.
+    zenBrowser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
   };
 
   outputs = {
@@ -31,6 +38,7 @@
     home-manager,
     disko,
     impermanence,
+    zenBrowser,
     ...
   }: let
     linuxSystem = "x86_64-linux";
@@ -70,14 +78,23 @@
     evalTests.${linuxSystem} = import ./tests/eval {
       pkgs = pkgsLinux;
       inherit (nixpkgs) lib;
-      inherit nixpkgs home-manager impermanence;
+      inherit
+        nixpkgs
+        home-manager
+        impermanence
+        zenBrowser
+        ;
     };
 
     # VM tests: boot a headless machine and validate runtime behavior.
     # Linux-only (runNixOSTest is Linux-only).
     vmTests.${linuxSystem} = import ./tests/vm {
       pkgs = pkgsLinuxUnfree;
-      inherit home-manager impermanence;
+      inherit
+        home-manager
+        impermanence
+        zenBrowser
+        ;
     };
 
     nixosConfigurations = {
@@ -86,6 +103,8 @@
         specialArgs = {
           hostName = "starkiller";
           stateVersion = "25.11";
+          # Expose zenBrowser input to shared modules that import external Home Manager modules.
+          inherit zenBrowser;
         };
         modules =
           commonModules
@@ -99,6 +118,7 @@
       #   specialArgs = {
       #     hostName = "vader";
       #     stateVersion = "25.11";
+      #     inherit zenBrowser;
       #   };
       #   modules = commonModules ++ [
       #     ./hosts/vader

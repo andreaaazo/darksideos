@@ -33,44 +33,52 @@
   assertions = [
     (testLib.mkResult {
       id = "home-zen-browser-001";
-      name = "Zen Browser package is in andrea profile";
-      passed =
-        builtins.any
-        (drv: pkgs.lib.hasInfix "zen-browser" (toString drv))
-        (pkgs.lib.attrByPath [
-            "home-manager"
-            "users"
-            "andrea"
-            "home"
-            "packages"
-          ] []
-          config);
-      expected = "home.packages containing zen-browser";
-      actual = builtins.map toString (pkgs.lib.attrByPath [
-          "home-manager"
-          "users"
-          "andrea"
-          "home"
-          "packages"
-        ] []
-        config);
+      name = "Zen Browser module is enabled";
+      passed = pkgs.lib.attrByPath ["home-manager" "users" "andrea" "programs" "zen-browser" "enable"] false config;
+      expected = "programs.zen-browser.enable = true";
+      actual = pkgs.lib.attrByPath ["home-manager" "users" "andrea" "programs" "zen-browser" "enable"] null config;
       severity = "high";
-      rationale = "Standalone Zen Browser module should materialize browser package in user profile";
+      rationale = "Zen Browser feature must be enabled via flake-provided Home Manager module";
     })
 
     (testLib.mkResult {
       id = "home-zen-browser-002";
+      name = "Zen Browser is configured as default browser";
+      passed = pkgs.lib.attrByPath ["home-manager" "users" "andrea" "programs" "zen-browser" "setAsDefaultBrowser"] false config;
+      expected = "programs.zen-browser.setAsDefaultBrowser = true";
+      actual = pkgs.lib.attrByPath ["home-manager" "users" "andrea" "programs" "zen-browser" "setAsDefaultBrowser"] null config;
+      severity = "high";
+      rationale = "Zen Browser should own URL and web MIME associations declaratively";
+    })
+
+    (testLib.mkResult {
+      id = "home-zen-browser-003";
+      name = "HTTP default application is Zen twilight desktop entry";
+      passed = pkgs.lib.attrByPath ["home-manager" "users" "andrea" "xdg" "mimeApps" "defaultApplications" "x-scheme-handler/http"] "" config == "zen-twilight.desktop";
+      expected = "xdg.mimeApps.defaultApplications.x-scheme-handler/http = zen-twilight.desktop";
+      actual = pkgs.lib.attrByPath ["home-manager" "users" "andrea" "xdg" "mimeApps" "defaultApplications" "x-scheme-handler/http"] null config;
+      severity = "high";
+      rationale = "Default browser integration should map HTTP handler to Zen twilight desktop entry";
+    })
+
+    (testLib.mkResult {
+      id = "home-zen-browser-004";
+      name = "BROWSER session variable is set to Zen twilight launcher";
+      passed = pkgs.lib.attrByPath ["home-manager" "users" "andrea" "home" "sessionVariables" "BROWSER"] "" config == "zen-twilight";
+      expected = "home.sessionVariables.BROWSER = zen-twilight";
+      actual = pkgs.lib.attrByPath ["home-manager" "users" "andrea" "home" "sessionVariables" "BROWSER"] null config;
+      severity = "high";
+      rationale = "CLI/browser-aware tools should resolve Zen as default browser from session environment";
+    })
+
+    (testLib.mkResult {
+      id = "home-zen-browser-005";
       name = "Zen Browser Wayland keybind is present";
-      passed =
-        builtins.any
-        (bind:
-          pkgs.lib.hasInfix "zen-browser" bind
-          && pkgs.lib.hasInfix "--ozone-platform=wayland --enable-features=UseOzonePlatform" bind)
-        hyprlandBinds;
-      expected = "bind containing zen-browser launcher with Wayland ozone flags";
+      passed = builtins.any (bind: pkgs.lib.hasInfix "exec, /nix/store/" bind && pkgs.lib.hasInfix "--ozone-platform=wayland --enable-features=UseOzonePlatform" bind) hyprlandBinds;
+      expected = "bind containing deterministic store executable and Wayland ozone flags";
       actual = hyprlandBinds;
       severity = "high";
-      rationale = "Zen Browser module should wire deterministic Hyprland launcher binding";
+      rationale = "Zen Browser launcher should be deterministic and force native Wayland execution";
     })
   ];
 in

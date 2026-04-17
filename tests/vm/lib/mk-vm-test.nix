@@ -3,6 +3,7 @@
   pkgs,
   home-manager,
   impermanence,
+  zenBrowser,
 }: {
   name,
   includeHomeManager ? false,
@@ -16,6 +17,7 @@
     inherit
       hostName
       stateVersion
+      zenBrowser
       ;
   };
 in

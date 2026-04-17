@@ -4,6 +4,7 @@
   nixpkgs,
   home-manager,
   impermanence,
+  zenBrowser,
 }: rec {
   # Evaluates a shared module using nixpkgs.lib.nixosSystem.
   # Returns the full NixOS config tree without building anything.
@@ -27,6 +28,8 @@
     defaultStubs = {
       hostName = "test-host";
       stateVersion = "25.11";
+      # Pass zenBrowser input to modules that import external Zen Browser Home Manager module.
+      inherit zenBrowser;
     };
 
     # Merge default stubs with caller-provided stubs

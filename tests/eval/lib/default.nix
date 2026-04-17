@@ -6,8 +6,16 @@
   nixpkgs,
   home-manager,
   impermanence,
+  zenBrowser,
 }: let
-  eval = import ./eval.nix {inherit nixpkgs home-manager impermanence;};
+  eval = import ./eval.nix {
+    inherit
+      nixpkgs
+      home-manager
+      impermanence
+      zenBrowser
+      ;
+  };
   assertions = import ./assertions.nix {inherit lib;};
 in {
   inherit pkgs;
