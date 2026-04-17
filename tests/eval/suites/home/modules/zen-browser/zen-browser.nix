@@ -30,6 +30,16 @@
     ] []
     config;
 
+  defaultHttpApp = pkgs.lib.attrByPath [
+    "home-manager"
+    "users"
+    "andrea"
+    "xdg"
+    "mimeApps"
+    "defaultApplications"
+    "x-scheme-handler/http"
+  ] null config;
+
   assertions = [
     (testLib.mkResult {
       id = "home-zen-browser-001";
@@ -54,9 +64,11 @@
     (testLib.mkResult {
       id = "home-zen-browser-003";
       name = "HTTP default application is Zen twilight desktop entry";
-      passed = pkgs.lib.attrByPath ["home-manager" "users" "andrea" "xdg" "mimeApps" "defaultApplications" "x-scheme-handler/http"] "" config == "zen-twilight.desktop";
+      passed =
+        defaultHttpApp == "zen-twilight.desktop"
+        || (builtins.isList defaultHttpApp && defaultHttpApp == ["zen-twilight.desktop"]);
       expected = "xdg.mimeApps.defaultApplications.x-scheme-handler/http = zen-twilight.desktop";
-      actual = pkgs.lib.attrByPath ["home-manager" "users" "andrea" "xdg" "mimeApps" "defaultApplications" "x-scheme-handler/http"] null config;
+      actual = defaultHttpApp;
       severity = "high";
       rationale = "Default browser integration should map HTTP handler to Zen twilight desktop entry";
     })
