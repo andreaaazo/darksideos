@@ -1,5 +1,7 @@
 {
+  # Hyprland visual style and decoration namespace.
   wayland.windowManager.hyprland.settings = {
+    # General tiling and border behavior.
     general = {
       # INNER GAPS
       # Removes spacing between tiled windows to keep layouts dense and edge-aligned

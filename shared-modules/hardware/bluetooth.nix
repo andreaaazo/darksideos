@@ -1,6 +1,7 @@
 # Shared Bluetooth baseline.
 # Host-specific overrides belong in hosts/<hostname>/default.nix.
 {pkgs, ...}: {
+  # Bluetooth hardware namespace (BlueZ daemon, policy, and profiles).
   hardware.bluetooth = {
     # Installs BlueZ stack and starts the bluetoothd daemon so the system can manage Bluetooth hardware.
     enable = true;
@@ -13,7 +14,9 @@
     # Drop legacy SAP plugin from shared baseline.
     disabledPlugins = ["sap"];
 
+    # BlueZ daemon configuration blocks.
     settings = {
+      # Global controller behavior.
       General = {
         # Dual mode allows both BR/EDR and LE support.
         ControllerMode = "dual";
@@ -24,20 +27,25 @@
         # Enable BlueZ experimental paths (bleeding edge behavior).
         Experimental = true;
       };
+      # Auto-enable policy at daemon startup.
       Policy = {
         # Keep radio disabled until explicitly enabled by user/host logic.
         AutoEnable = false;
       };
     };
 
+    # BlueZ input profile policy.
     input = {
+      # Input profile general options.
       General = {
         # Only accept classic input devices that are already bonded.
         ClassicBondedOnly = true;
       };
     };
 
+    # BlueZ network profile policy.
     network = {
+      # Network profile general options.
       General = {
         # Keep network profile security checks enabled.
         DisableSecurity = false;
@@ -48,6 +56,7 @@
   # Bluetooth audio quality baseline for PipeWire/WirePlumber.
   # Applies only when Bluetooth audio is used; no host/device-specific profile here.
   services.pipewire.wireplumber.extraConfig."51-bluez-audio-quality" = {
+    # BlueZ monitor properties exposed to WirePlumber policy engine.
     "monitor.bluez.properties" = {
       # Enable higher-quality SBC mode when supported by both sides.
       "bluez5.enable-sbc-xq" = true;

@@ -9,6 +9,7 @@
     version = "macos-26-20260219-2aa12422";
     # Downloads a file from a URL and verifies its integrity against the provided hash (fails if the file changes upstream).
     src = pkgs.fetchurl {
+      # Upstream Apple Color Emoji TTF asset URL.
       url = "https://github.com/samuelngs/apple-emoji-ttf/releases/download/macos-26-20260219-2aa12422/AppleColorEmoji-Linux.ttf";
       # Cryptographic hash ensuring the downloaded file is exactly the expected one (determinism guarantee).
       hash = "sha256:535a043af04706d24471059e64745bfc80d6617ada2eea3435dc5620dc0f5318";
@@ -23,10 +24,12 @@
     '';
   };
 in {
+  # NixOS fonts namespace (installed font packages and fontconfig defaults).
   fonts = {
     # Disables NixOS default fonts (DejaVu, Liberation, etc.) — only explicitly declared fonts exist on the system.
     enableDefaultPackages = false;
 
+    # Font packages installed system-wide.
     packages = [
       # Monospace Nerd font for terminals, code editors, and any app requesting a fixed-width typeface.
       pkgs.nerd-fonts.jetbrains-mono
@@ -41,6 +44,7 @@ in {
       '')
     ];
 
+    # Font family fallback mapping used by fontconfig.
     fontconfig.defaultFonts = {
       # When any app requests "monospace" font family, fontconfig resolves to JetBrains Nerd Font.
       monospace = ["JetBrainsMono Nerd Font"];
@@ -52,6 +56,7 @@ in {
       emoji = ["Apple Color Emoji"];
     };
 
+    # Global fontconfig behavior toggles.
     fontconfig = {
       # Reject legacy bitmap fonts to keep rendering modern and avoid obsolete font fallbacks.
       allowBitmaps = false;
