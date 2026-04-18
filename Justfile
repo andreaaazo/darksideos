@@ -57,3 +57,13 @@ dead-code: docker-build
       -w /work \
       {{docker_image}} \
       nix build --no-write-lock-file 'path:.#checks.x86_64-linux.deadcode' --print-build-logs
+
+update-lock: docker-build
+    docker run --rm \
+      -e NIX_CONFIG='experimental-features = nix-command flakes' \
+      -e HOST_UID="$(id -u)" \
+      -e HOST_GID="$(id -g)" \
+      -v "$PWD:/work" \
+      -w /work \
+      {{docker_image}} \
+      bash -euo pipefail -c 'nix flake update --flake path:/work && chown "$HOST_UID:$HOST_GID" /work/flake.lock'
