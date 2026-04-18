@@ -26,10 +26,4 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Run VM tests
-        run: |
-          tests=$(nix eval .#vmTests.x86_64-linux --apply 'builtins.attrNames' --json)
-          for test in $(echo "$tests" | jq -r '.[]'); do
-            echo "::group::Running $test"
-            nix build ".#vmTests.x86_64-linux.$test" --print-build-logs
-            echo "::endgroup::"
-          done
+        run: bash ./tests/local/scripts/check-vm.sh

@@ -25,20 +25,5 @@ jobs:
       - name: Cache Nix store
         uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Formatting (alejandra)
-        run: nix build .#checks.x86_64-linux.formatting --print-build-logs
-
-      - name: Linting (statix)
-        run: nix build .#checks.x86_64-linux.linting --print-build-logs
-
-      - name: Dead code (deadnix)
-        run: nix build .#checks.x86_64-linux.deadcode --print-build-logs
-
-      - name: Evaluate all hosts
-        run: |
-          hosts=$(nix eval .#nixosConfigurations --apply 'builtins.attrNames' --json)
-          for host in $(echo "$hosts" | jq -r '.[]'); do
-            echo "::group::Evaluating $host"
-            nix eval ".#nixosConfigurations.$host.config.system.build.toplevel" --show-trace
-            echo "::endgroup::"
-          done
+      - name: Run check-code entrypoint
+        run: bash ./tests/local/scripts/check-code.sh

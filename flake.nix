@@ -34,14 +34,12 @@
     ...
   }: let
     linuxSystem = "x86_64-linux";
-    darwinSystem = "x86_64-darwin";
 
     pkgsLinux = nixpkgs.legacyPackages.${linuxSystem};
     pkgsLinuxUnfree = import nixpkgs {
       system = linuxSystem;
       config.allowUnfree = true;
     };
-    pkgsDarwin = nixpkgs.legacyPackages.${darwinSystem};
 
     # Shared modules for every host configuration
     commonModules = [
@@ -50,18 +48,10 @@
       home-manager.nixosModules.home-manager
     ];
   in {
-    # Development shell: nix develop
-    devShells.${linuxSystem}.default = import ./devshell.nix {pkgs = pkgsLinux;};
-    devShells.${darwinSystem}.default = import ./devshell.nix {pkgs = pkgsDarwin;};
-
     # Flake checks: nix flake check
-    # Static analysis (formatting, linting, deadcode) runs on both Linux and Darwin.
-    checks.${linuxSystem} = import ./checks.nix {
+    # Local/CI checks run in Linux Docker runner.
+    checks.${linuxSystem} = import ./tests/checks {
       pkgs = pkgsLinux;
-      inherit self;
-    };
-    checks.${darwinSystem} = import ./checks.nix {
-      pkgs = pkgsDarwin;
       inherit self;
     };
 
