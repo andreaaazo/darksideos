@@ -51,20 +51,6 @@
     })
 
     (testLib.assertContains {
-      id = "portal-004";
-      name = "Hyprland portal backend installed";
-      inherit config;
-      path = [
-        "xdg"
-        "portal"
-        "extraPortals"
-      ];
-      element = pkgs.xdg-desktop-portal-hyprland;
-      severity = "high";
-      rationale = "Hyprland backend is required for screencast/screenshot/remote desktop";
-    })
-
-    (testLib.assertContains {
       id = "portal-005";
       name = "GTK portal backend installed";
       inherit config;

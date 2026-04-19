@@ -1,13 +1,149 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Level 3 local checks: build every VM test output.
+# VM scope:
+# - full: run complete dump (file-level + module-level + full-stack)
+# - module: run module dump(s). With VM_TARGET=<name>, run one module dump.
+#           Without VM_TARGET, run every module dump (all module file-level tests + vm-module-*)
+# - file: run file-level test(s). With VM_TARGET=<name>, run one file-level test.
+#         Without VM_TARGET, run all file-level tests
+scope="${VM_SCOPE:-}"
+target="${VM_TARGET:-}"
+show_nixos_logs="${VM_SHOW_NIXOS_LOGS:-}"
+
+if [[ -z "$scope" ]]; then
+  echo "VM_SCOPE is required. Supported values: full, module, file." >&2
+  echo "Example: VM_SCOPE=full just check-vm" >&2
+  exit 1
+fi
+
+if [[ -z "$show_nixos_logs" ]]; then
+  echo "VM_SHOW_NIXOS_LOGS is required. Supported values: true, false." >&2
+  echo "Example: VM_SCOPE=full VM_SHOW_NIXOS_LOGS=false just check-vm" >&2
+  exit 1
+fi
+
+case "$show_nixos_logs" in
+  true | false) ;;
+  *)
+    echo "Unsupported VM_SHOW_NIXOS_LOGS='$show_nixos_logs'. Supported values: true, false." >&2
+    exit 1
+    ;;
+esac
+
 tests="$(nix eval 'path:.#vmTests.x86_64-linux' --apply 'builtins.attrNames' --json)"
-for test in $(echo "$tests" | jq -r '.[]'); do
+file_tests="$(echo "$tests" | jq -r '.[] | select(startswith("vm-module-") | not) | select(startswith("vm-stack-") | not)' | sort -u)"
+module_names="$(echo "$tests" | jq -r '.[] | select(startswith("vm-module-")) | sub("^vm-module-"; "")' | sort -u)"
+
+case "$scope" in
+  full)
+    if [[ -n "$target" ]]; then
+      echo "VM_TARGET is not supported with VM_SCOPE=full. Use VM_SCOPE=file|module for targeted runs." >&2
+      exit 1
+    fi
+    selected_tests="$(echo "$tests" | jq -r '.[]' | sort -u)"
+    ;;
+  file)
+    if [[ -n "$target" ]]; then
+      file_target="$target"
+      if [[ "$file_target" != vm-* ]]; then
+        file_target="vm-$file_target"
+      fi
+
+      if ! echo "$file_tests" | grep -Fxq "$file_target"; then
+        echo "Unknown VM file target: '$target' (normalized: '$file_target')." >&2
+        echo "Available file targets:" >&2
+        echo "$file_tests" >&2
+        exit 1
+      fi
+
+      selected_tests="$file_target"
+    else
+      selected_tests="$file_tests"
+    fi
+    ;;
+  module)
+    if [[ -n "$target" ]]; then
+      module_name="$target"
+      module_name="${module_name#module:}"
+      module_name="${module_name#vm-module-}"
+
+      if ! echo "$module_names" | grep -Fxq "$module_name"; then
+        echo "Unknown VM module target: '$target' (normalized: '$module_name')." >&2
+        echo "Available module targets:" >&2
+        echo "$module_names" >&2
+        exit 1
+      fi
+
+      selected_tests="$(
+        echo "$tests" | jq -r --arg m "$module_name" '
+          .[] |
+          select(
+            . == ("vm-" + $m) or
+            startswith("vm-" + $m + "-") or
+            . == ("vm-module-" + $m)
+          )
+        ' | sort -u
+      )"
+    else
+      selected_tests="$(
+        echo "$tests" | jq -r '
+          . as $all
+          | [ .[] | select(startswith("vm-module-")) | sub("^vm-module-"; "") ] as $mods
+          | $all[] as $t
+          | select(
+              any($mods[]; . as $m | $t == ("vm-" + $m) or ($t | startswith("vm-" + $m + "-")) or $t == ("vm-module-" + $m))
+            )
+          | $t
+        ' | sort -u
+      )"
+    fi
+    ;;
+  *)
+    echo "Unsupported VM_SCOPE='$scope'. Supported values: full, module, file." >&2
+    echo "Examples: VM_SCOPE=full just check-vm | VM_SCOPE=file VM_TARGET=vm-core-nix just check-vm" >&2
+    exit 1
+    ;;
+esac
+
+if [[ -z "$selected_tests" ]]; then
+  if [[ -n "$target" ]]; then
+    echo "No VM tests selected for VM_SCOPE='$scope' with VM_TARGET='$target'." >&2
+  else
+    echo "No VM tests selected for VM_SCOPE='$scope'." >&2
+  fi
+  exit 1
+fi
+
+for test in $selected_tests; do
   echo "Running ${test}"
-  nix build \
-    --no-write-lock-file \
-    --option system-features "benchmark big-parallel nixos-test kvm uid-range" \
-    "path:.#vmTests.x86_64-linux.${test}" \
-    --print-build-logs
+  if [[ "$show_nixos_logs" == "true" ]]; then
+    nix build \
+      --no-write-lock-file \
+      --option system-features "benchmark big-parallel nixos-test kvm uid-range" \
+      "path:.#vmTests.x86_64-linux.${test}" \
+      --print-build-logs
+  else
+    log_file="$(mktemp)"
+    if nix build \
+      --no-write-lock-file \
+      --option system-features "benchmark big-parallel nixos-test kvm uid-range" \
+      "path:.#vmTests.x86_64-linux.${test}" \
+      --print-build-logs >"$log_file" 2>&1; then
+      if grep -E '\[PASS\]|\[FAIL\]|(Expected|Actual|Severity|Rationale):' "$log_file" >/dev/null 2>&1; then
+        grep -E '\[PASS\]|\[FAIL\]|(Expected|Actual|Severity|Rationale):' "$log_file"
+      else
+        echo "[PASS] ${test}: completed"
+      fi
+    else
+      if grep -E '\[PASS\]|\[FAIL\]|(Expected|Actual|Severity|Rationale):' "$log_file" >/dev/null 2>&1; then
+        grep -E '\[PASS\]|\[FAIL\]|(Expected|Actual|Severity|Rationale):' "$log_file" >&2
+      else
+        echo "[FAIL] ${test}: build failed without assertion markers." >&2
+      fi
+      rm -f "$log_file"
+      exit 1
+    fi
+    rm -f "$log_file"
+  fi
 done

@@ -6,16 +6,34 @@
   home-manager,
   impermanence,
   zenBrowser,
-}: let
-  testLib = import ./lib {
-    inherit
-      pkgs
-      lib
-      nixpkgs
-      home-manager
-      impermanence
-      zenBrowser
-      ;
-  };
-in
-  import ./suites {inherit pkgs testLib;}
+}:
+import ./suites-file {
+  inherit
+    pkgs
+    lib
+    nixpkgs
+    home-manager
+    impermanence
+    zenBrowser
+    ;
+}
+// import ./suites-module {
+  inherit
+    pkgs
+    lib
+    nixpkgs
+    home-manager
+    impermanence
+    zenBrowser
+    ;
+}
+// import ./suites-full {
+  inherit
+    pkgs
+    lib
+    nixpkgs
+    home-manager
+    impermanence
+    zenBrowser
+    ;
+}

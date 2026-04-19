@@ -4,13 +4,17 @@
     import json
 
 
-    def fail_assertion(assertion_id, name, expected, actual, severity="high", rationale=""):
-        print(f"[FAIL] {assertion_id}: {name}")
+    def print_assertion_metadata(expected, actual, severity="high", rationale=""):
         print(f"  Expected: {json.dumps(expected)}")
         print(f"  Actual:   {json.dumps(actual)}")
         print(f"  Severity: {severity}")
         if rationale != "":
             print(f"  Rationale: {rationale}")
+
+
+    def fail_assertion(assertion_id, name, expected, actual, severity="high", rationale=""):
+        print(f"[FAIL] {assertion_id}: {name}")
+        print_assertion_metadata(expected, actual, severity, rationale)
         raise Exception(f"{assertion_id} failed")
 
 
@@ -18,6 +22,7 @@
         try:
             machine.succeed(command)
             print(f"[PASS] {assertion_id}: {name}")
+            print_assertion_metadata("command succeeds", "command succeeded", severity, rationale)
         except Exception:
             fail_assertion(assertion_id, name, "command succeeds", "command failed", severity, rationale)
   '';
@@ -43,6 +48,7 @@
         actual_seconds = float(match.group(1))
         if actual_seconds <= max_seconds:
             print(f"[PASS] {assertion_id}: userspace boot time <= {max_seconds}s")
+            print_assertion_metadata(f"<= {max_seconds}s", actual_seconds, severity, rationale)
             return
 
         fail_assertion(

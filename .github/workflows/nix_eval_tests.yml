@@ -26,4 +26,7 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Run check-eval entrypoint
+        env:
+          EVAL_SCOPE: full
+          EVAL_SHOW_NIXOS_LOGS: false
         run: bash ./tests/local/scripts/check-eval.sh

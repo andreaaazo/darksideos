@@ -148,17 +148,137 @@ tmpfs /                     RAM-backed, wiped on boot (50% RAM)
 
 All local checks run through Docker to keep host systems clean and to match CI behavior.
 GitHub Actions calls the same scripts in `tests/local/scripts/` to avoid command drift.
+Eval and VM runners support scoped execution through explicit environment variables.
 
 | Command | Purpose |
 |---|---|
-| `just check-code` | Level 1 checks: formatting, linting, dead code, and host configuration evaluation |
-| `just check-eval` | Level 2 checks: runs all evaluation tests (`evalTests`) |
-| `just check-vm` | Level 3 checks: runs all VM tests (`vmTests`) |
-| `just check-all` | Runs `check-code`, `check-eval`, and `check-vm` in sequence |
+| `just check-code` | Runs formatting, linting, dead code, and host configuration evaluation |
+| `just check-eval` | Runs eval tests. Requires `EVAL_SCOPE` and `EVAL_SHOW_NIXOS_LOGS`. See [Eval Scope Control](#eval-scope-control-just-check-eval-only) |
+| `just check-vm` | Runs VM tests. Requires `VM_SCOPE` and `VM_SHOW_NIXOS_LOGS`. See [VM Scope Control](#vm-scope-control-just-check-vm-only) |
+| `just check-all` | Runs `check-code`, `check-eval`, and `check-vm` in sequence (requires both eval and VM env vars) |
 | `just format-code` | Formats repository files locally via Docker runner |
 | `just lint-code` | Runs linting check output only |
 | `just dead-code` | Runs dead code check output only |
 | `just update-lock` | Updates `flake.lock` deterministically via Docker runner |
+
+#### Eval Scope Control (`just check-eval` only)
+
+- `EVAL_SCOPE` is required for `just check-eval`.
+- `EVAL_SHOW_NIXOS_LOGS` is required for `just check-eval`:
+  - `true`: show full Nix eval/build logs
+  - `false`: show assertion output only (`[PASS]`/`[FAIL]` + Expected/Actual/Severity/Rationale)
+- `EVAL_SCOPE=full`: run complete dump (`suites-file` + `suites-module` + `suites-full`)
+- `EVAL_SCOPE=file`: without `EVAL_TARGET`, run all file-level tests; with `EVAL_TARGET`, run one file-level test (example: `eval-core-nix`)
+- `EVAL_SCOPE=module`: without `EVAL_TARGET`, run all module dumps; with `EVAL_TARGET`, run one module dump (file-level tests for module + `eval-module-<module>`)
+- Invalid `EVAL_TARGET` values fail immediately with explicit error and allowed targets list.
+- `EVAL_TARGET` with `EVAL_SCOPE=full` is rejected (targeting is only valid for `file`/`module`).
+
+Examples:
+
+```bash
+# Full eval dump
+EVAL_SCOPE=full EVAL_SHOW_NIXOS_LOGS=false just check-eval
+
+# Single file-level eval test
+EVAL_SCOPE=file EVAL_TARGET=eval-core-nix EVAL_SHOW_NIXOS_LOGS=true just check-eval
+
+# Single module eval dump (all eval-home-* + eval-module-home)
+EVAL_SCOPE=module EVAL_TARGET=home EVAL_SHOW_NIXOS_LOGS=false just check-eval
+```
+
+#### VM Scope Control (`just check-vm` only)
+
+- `VM_SCOPE` is required for `just check-vm`.
+- `VM_SHOW_NIXOS_LOGS` is required for `just check-vm`:
+  - `true`: show full Nix/NixOS build logs
+  - `false`: show assertion output only (`[PASS]`/`[FAIL]` + Expected/Actual/Severity/Rationale)
+- `VM_SCOPE=full`: run complete dump (`suites-file` + `suites-module` + `suites-full`)
+- `VM_SCOPE=file`: without `VM_TARGET`, run all file-level tests; with `VM_TARGET`, run one file-level test (example: `vm-core-nix`)
+- `VM_SCOPE=module`: without `VM_TARGET`, run all module dumps; with `VM_TARGET`, run one module dump (file-level tests for module + `vm-module-<module>`)
+- Invalid `VM_TARGET` values fail immediately with explicit error and allowed targets list.
+- `VM_TARGET` with `VM_SCOPE=full` is rejected (targeting is only valid for `file`/`module`).
+
+Examples:
+
+```bash
+# Full VM dump
+VM_SCOPE=full VM_SHOW_NIXOS_LOGS=false just check-vm
+
+# Single file-level VM test
+VM_SCOPE=file VM_TARGET=vm-core-nix VM_SHOW_NIXOS_LOGS=true just check-vm
+
+# Single module VM dump (all vm-home-* + vm-module-home)
+VM_SCOPE=module VM_TARGET=home VM_SHOW_NIXOS_LOGS=false just check-vm
+```
+
+CI policy:
+
+- GitHub Actions eval workflow sets `EVAL_SCOPE=full` and `EVAL_SHOW_NIXOS_LOGS=false`.
+- GitHub Actions VM workflow sets `VM_SCOPE=full` and `VM_SHOW_NIXOS_LOGS=false`.
+
+### Writing New Tests
+
+Keep tests aligned with shared modules and add assertions at right level.
+
+| Level | Purpose | Location | Registration |
+|---|---|---|---|
+| Eval file-level (config invariants) | Validate `config.*` values without booting VM | `tests/eval/suites-file/<module>/<file>.nix` | Add output in `tests/eval/suites-file/<module>/default.nix` |
+| Eval module-level | Validate integrated behavior of one module entrypoint | `tests/eval/suites-module/module-<module>.nix` | Add output in `tests/eval/suites-module/default.nix` |
+| Eval full-stack | Validate cross-module config composition | `tests/eval/suites-full/stack-shared.nix` | Exported by `tests/eval/suites-full/default.nix` |
+| VM file-level | Validate runtime behavior for one shared file | `tests/vm/suites-file/<module>/<file>.nix` | Add output in `tests/vm/suites-file/<module>/default.nix` |
+| VM module-level | Validate integrated behavior of one module entrypoint | `tests/vm/suites-module/module-<module>.nix` | Add output in `tests/vm/suites-module/default.nix` |
+| VM full-stack | Validate cross-module composition | `tests/vm/suites-full/stack-shared.nix` | Exported by `tests/vm/suites-full/default.nix` |
+
+Authoring rules:
+
+1. Mirror module path 1:1 between `shared-modules/` and `tests/eval/suites-file` + `tests/vm/suites-file`.
+2. Put per-file invariants in file-level tests first; add module/full tests only for integration invariants.
+3. Keep assertions explicit and stable: unique ID, clear name, severity, rationale.
+4. Reuse helpers, do not reimplement harnesses:
+   - Eval: `testLib.getConfig`, `testLib.assert*`, `testLib.mkCheckScript`
+   - VM: `vmLib.mkVmTest`, `${vmLib.assertions.common}`, `assert_command(...)`
+
+Quick templates:
+
+```nix
+# tests/eval/suites-file/<module>/<file>.nix
+{ pkgs, testLib }: let
+  config = testLib.getConfig { modules = [ ../../../../shared-modules/<module>/<file>.nix ]; };
+  assertions = [
+    (testLib.assertEnabled {
+      id = "<file>-001";
+      name = "<invariant>";
+      inherit config;
+      path = [ "..." ];
+      severity = "high";
+      rationale = "<why this matters>";
+    })
+  ];
+in
+pkgs.runCommand "eval-<module>-<file>" {} (testLib.mkCheckScript {
+  name = "<module>/<file>";
+  assertionResults = assertions;
+})
+```
+
+```nix
+# tests/vm/suites-file/<module>/<file>.nix
+{ vmLib }:
+vmLib.mkVmTest {
+  name = "<module>-<file>";
+  nodeModules = [ ../../../../shared-modules/<module>/<file>.nix ];
+  testScript = ''
+    ${vmLib.assertions.common}
+    assert_command(
+        "vm-<file>-001",
+        "<invariant>",
+        "<shell check>",
+        severity="high",
+        rationale="<why this matters>",
+    )
+  '';
+}
+```
 
 ### Adding a New Machine
 

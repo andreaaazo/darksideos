@@ -1,20 +1,32 @@
 # VM tests entry point.
-# Exposes only runnable VM suites.
+# Exposes runnable VM test outputs composed from file-level, module-level, and full-stack suites.
 {
   pkgs,
   home-manager,
   impermanence,
   zenBrowser,
-}: let
-  vmLib = import ./lib {
-    inherit
-      pkgs
-      home-manager
-      impermanence
-      zenBrowser
-      ;
-  };
-in
-  import ./suites {
-    inherit vmLib;
-  }
+}:
+(import ./suites-file {
+  inherit
+    pkgs
+    home-manager
+    impermanence
+    zenBrowser
+    ;
+})
+// (import ./suites-module {
+  inherit
+    pkgs
+    home-manager
+    impermanence
+    zenBrowser
+    ;
+})
+// (import ./suites-full {
+  inherit
+    pkgs
+    home-manager
+    impermanence
+    zenBrowser
+    ;
+})

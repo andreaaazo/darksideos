@@ -16,6 +16,9 @@ check-code: docker-build
 check-eval: docker-build
     docker run --rm \
       -e NIX_CONFIG='experimental-features = nix-command flakes' \
+      -e EVAL_SCOPE \
+      -e EVAL_TARGET \
+      -e EVAL_SHOW_NIXOS_LOGS \
       -v "$PWD:/work" \
       -w /work \
       {{docker_image}} \
@@ -24,6 +27,9 @@ check-eval: docker-build
 check-vm: docker-build
     docker run --rm \
       -e NIX_CONFIG='experimental-features = nix-command flakes' \
+      -e VM_SCOPE \
+      -e VM_TARGET \
+      -e VM_SHOW_NIXOS_LOGS \
       --device /dev/kvm \
       -v "$PWD:/work" \
       -w /work \
