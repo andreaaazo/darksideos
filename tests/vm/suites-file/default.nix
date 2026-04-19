@@ -1,4 +1,4 @@
-# VM suites aggregator.
+# VM suites aggregator for file-level and module-slice tests.
 {vmLib}:
 (import ./core {inherit vmLib;})
 // (import ./graphics {inherit vmLib;})

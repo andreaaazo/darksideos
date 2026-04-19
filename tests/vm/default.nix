@@ -1,5 +1,5 @@
 # VM tests entry point.
-# Exposes only runnable VM suites.
+# Exposes runnable VM test outputs composed from file-level and full-stack suites.
 {
   pkgs,
   home-manager,
@@ -13,6 +13,5 @@
       ;
   };
 in
-  import ./suites {
-    inherit vmLib;
-  }
+  (import ./suites-file {inherit vmLib;})
+  // (import ./suites-full {inherit vmLib;})
