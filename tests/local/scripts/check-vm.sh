@@ -2,18 +2,30 @@
 set -euo pipefail
 
 # VM scope:
-# - full (default): run complete dump (file-level + module-level + full-stack)
+# - full: run complete dump (file-level + module-level + full-stack)
 # - module: run module dump(s). With VM_TARGET=<name>, run one module dump.
 #           Without VM_TARGET, run every module dump (all module file-level tests + vm-module-*)
 # - file: run file-level test(s). With VM_TARGET=<name>, run one file-level test.
 #         Without VM_TARGET, run all file-level tests
-scope="${VM_SCOPE:-full}"
+scope="${VM_SCOPE:-}"
 target="${VM_TARGET:-}"
 
+if [[ -z "$scope" ]]; then
+  echo "VM_SCOPE is required. Supported values: full, module, file." >&2
+  echo "Example: VM_SCOPE=full just check-vm" >&2
+  exit 1
+fi
+
 tests="$(nix eval 'path:.#vmTests.x86_64-linux' --apply 'builtins.attrNames' --json)"
+file_tests="$(echo "$tests" | jq -r '.[] | select(startswith("vm-module-") | not) | select(startswith("vm-stack-") | not)' | sort -u)"
+module_names="$(echo "$tests" | jq -r '.[] | select(startswith("vm-module-")) | sub("^vm-module-"; "")' | sort -u)"
 
 case "$scope" in
   full)
+    if [[ -n "$target" ]]; then
+      echo "VM_TARGET is not supported with VM_SCOPE=full. Use VM_SCOPE=file|module for targeted runs." >&2
+      exit 1
+    fi
     selected_tests="$(echo "$tests" | jq -r '.[]' | sort -u)"
     ;;
   file)
@@ -23,9 +35,16 @@ case "$scope" in
         file_target="vm-$file_target"
       fi
 
-      selected_tests="$(echo "$tests" | jq -r --arg t "$file_target" '.[] | select(. == $t)' | sort -u)"
+      if ! echo "$file_tests" | grep -Fxq "$file_target"; then
+        echo "Unknown VM file target: '$target' (normalized: '$file_target')." >&2
+        echo "Available file targets:" >&2
+        echo "$file_tests" >&2
+        exit 1
+      fi
+
+      selected_tests="$file_target"
     else
-      selected_tests="$(echo "$tests" | jq -r '.[] | select(startswith("vm-module-") | not) | select(startswith("vm-stack-") | not)' | sort -u)"
+      selected_tests="$file_tests"
     fi
     ;;
   module)
@@ -33,6 +52,13 @@ case "$scope" in
       module_name="$target"
       module_name="${module_name#module:}"
       module_name="${module_name#vm-module-}"
+
+      if ! echo "$module_names" | grep -Fxq "$module_name"; then
+        echo "Unknown VM module target: '$target' (normalized: '$module_name')." >&2
+        echo "Available module targets:" >&2
+        echo "$module_names" >&2
+        exit 1
+      fi
 
       selected_tests="$(
         echo "$tests" | jq -r --arg m "$module_name" '

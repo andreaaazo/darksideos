@@ -24,6 +24,8 @@ check-eval: docker-build
 check-vm: docker-build
     docker run --rm \
       -e NIX_CONFIG='experimental-features = nix-command flakes' \
+      -e VM_SCOPE \
+      -e VM_TARGET \
       --device /dev/kvm \
       -v "$PWD:/work" \
       -w /work \

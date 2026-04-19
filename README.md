@@ -152,41 +152,35 @@ The VM runner supports scoped execution through `VM_SCOPE` and optional `VM_TARG
 
 | Command | Purpose |
 |---|---|
-| `just check-code` | Level 1 checks: formatting, linting, dead code, and host configuration evaluation |
-| `just check-eval` | Level 2 checks: runs all evaluation tests (`evalTests`) |
-| `just check-vm` | Level 3 checks: complete VM dump locally (file + module + full-stack) |
+| `just check-code` | Runs formatting, linting, dead code, and host configuration evaluation |
+| `just check-eval` | Runs all evaluation tests (`evalTests`) |
+| `just check-vm` | Runs VM tests. Requires `VM_SCOPE`. See [VM Scope Control](#vm-scope-control) |
 | `just check-all` | Runs `check-code`, `check-eval`, and `check-vm` in sequence |
 | `just format-code` | Formats repository files locally via Docker runner |
 | `just lint-code` | Runs linting check output only |
 | `just dead-code` | Runs dead code check output only |
 | `just update-lock` | Updates `flake.lock` deterministically via Docker runner |
 
-#### VM Scope Control
+#### VM Scope Control (`just check-vm` only)
 
-- `VM_SCOPE=full` (default): run complete dump (`suites-file` + `suites-module` + `suites-full`)
+- `VM_SCOPE` is required for `just check-vm`.
+- `VM_SCOPE=full`: run complete dump (`suites-file` + `suites-module` + `suites-full`)
 - `VM_SCOPE=file`: without `VM_TARGET`, run all file-level tests; with `VM_TARGET`, run one file-level test (example: `vm-core-nix`)
 - `VM_SCOPE=module`: without `VM_TARGET`, run all module dumps; with `VM_TARGET`, run one module dump (file-level tests for module + `vm-module-<module>`)
+- Invalid `VM_TARGET` values fail immediately with explicit error and allowed targets list.
+- `VM_TARGET` with `VM_SCOPE=full` is rejected (targeting is only valid for `file`/`module`).
 
 Examples:
 
 ```bash
-# Local full VM coverage dump (default behavior used by just check-vm)
-just check-vm
+# Full VM dump
+VM_SCOPE=full just check-vm
 
 # Single file-level VM test
-docker run --rm --device /dev/kvm -e NIX_CONFIG='experimental-features = nix-command flakes' -e VM_SCOPE=file -e VM_TARGET=vm-core-nix -v "$PWD:/work" -w /work darksideos-checks:latest bash ./tests/local/scripts/check-vm.sh
-
-# All file-level VM tests
-docker run --rm --device /dev/kvm -e NIX_CONFIG='experimental-features = nix-command flakes' -e VM_SCOPE=file -v "$PWD:/work" -w /work darksideos-checks:latest bash ./tests/local/scripts/check-vm.sh
+VM_SCOPE=file VM_TARGET=vm-core-nix just check-vm
 
 # Single module VM dump (all vm-home-* + vm-module-home)
-docker run --rm --device /dev/kvm -e NIX_CONFIG='experimental-features = nix-command flakes' -e VM_SCOPE=module -e VM_TARGET=home -v "$PWD:/work" -w /work darksideos-checks:latest bash ./tests/local/scripts/check-vm.sh
-
-# All module dumps (each module file-level tests + vm-module-*)
-docker run --rm --device /dev/kvm -e NIX_CONFIG='experimental-features = nix-command flakes' -e VM_SCOPE=module -v "$PWD:/work" -w /work darksideos-checks:latest bash ./tests/local/scripts/check-vm.sh
-
-# Explicit full dump
-docker run --rm --device /dev/kvm -e NIX_CONFIG='experimental-features = nix-command flakes' -e VM_SCOPE=full -v "$PWD:/work" -w /work darksideos-checks:latest bash ./tests/local/scripts/check-vm.sh
+VM_SCOPE=module VM_TARGET=home just check-vm
 ```
 
 CI policy:
