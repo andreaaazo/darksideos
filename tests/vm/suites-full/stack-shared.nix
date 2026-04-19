@@ -105,6 +105,13 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-stack-shared-010",
+        "required services present and forbidden bloat services absent",
+        "sh -eu -c 'must_file=$(mktemp); forbidden_file=$(mktemp); actual_file=$(mktemp); missing_file=$(mktemp); forbidden_hit_file=$(mktemp); printf \"%s\\n\" \"NetworkManager\" \"NetworkManager-dispatcher\" \"bluetooth\" \"home-manager-andrea\" \"nftables\" \"nscd\" \"persist-persist-etc-machine\\\\x2did\" \"persist-persist-var-lib-systemd-random\\\\x2dseed\" \"systemd-resolved\" | sort -u > \"$must_file\"; printf \"%s\\n\" \"sshd\" \"cups\" \"docker\" \"avahi-daemon\" | sort -u > \"$forbidden_file\"; systemctl list-unit-files --type=service --state=enabled --no-legend --no-pager | sed \"s/[[:space:]].*$//\" | sed \"s/\\\\.service$//\" | sort -u > \"$actual_file\"; comm -23 \"$must_file\" \"$actual_file\" > \"$missing_file\"; comm -12 \"$forbidden_file\" \"$actual_file\" > \"$forbidden_hit_file\"; if [ -s \"$missing_file\" ] || [ -s \"$forbidden_hit_file\" ]; then echo \"Service policy mismatch\" >&2; if [ -s \"$missing_file\" ]; then echo \"Missing required services:\" >&2; cat \"$missing_file\" >&2; fi; if [ -s \"$forbidden_hit_file\" ]; then echo \"Forbidden enabled services:\" >&2; cat \"$forbidden_hit_file\" >&2; fi; echo \"Enabled services snapshot:\" >&2; cat \"$actual_file\" >&2; rm -f \"$must_file\" \"$forbidden_file\" \"$actual_file\" \"$missing_file\" \"$forbidden_hit_file\"; exit 1; fi; rm -f \"$must_file\" \"$forbidden_file\" \"$actual_file\" \"$missing_file\" \"$forbidden_hit_file\"'",
+        severity="critical",
+        rationale="Full stack should enforce required services and deny known bloat while tolerating VM/runtime bootstrap infrastructure",
+    )
+    assert_command(
+        "vm-stack-shared-011",
         "no failed units after full-stack activation",
         "test \"$(systemctl list-units --failed --plain --no-legend --all | wc -l)\" -eq 0",
         severity="critical",

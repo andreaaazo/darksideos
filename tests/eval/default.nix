@@ -7,7 +7,8 @@
   impermanence,
   zenBrowser,
 }: let
-  testLib = import ./lib {
+in
+  (import ./suites-file {
     inherit
       pkgs
       lib
@@ -16,6 +17,24 @@
       impermanence
       zenBrowser
       ;
-  };
-in
-  import ./suites {inherit pkgs testLib;}
+  })
+  // (import ./suites-module {
+    inherit
+      pkgs
+      lib
+      nixpkgs
+      home-manager
+      impermanence
+      zenBrowser
+      ;
+  })
+  // (import ./suites-full {
+    inherit
+      pkgs
+      lib
+      nixpkgs
+      home-manager
+      impermanence
+      zenBrowser
+      ;
+  })
