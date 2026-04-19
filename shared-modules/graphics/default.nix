@@ -4,6 +4,7 @@
 #
 # No display manager — login via TTY, launch Hyprland manually or via shell profile.
 {...}: {
+  # Import the system graphics baseline modules.
   imports = [
     ./hyprland.nix
     ./portal.nix

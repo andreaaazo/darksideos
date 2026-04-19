@@ -1,18 +1,22 @@
 {pkgs, ...}: let
+  # Wrapper script that moves the focused Hyprland window via directional arguments.
   hyprWindowMove = pkgs.writeShellScriptBin "hypr-window-move" ''
     export PATH=${pkgs.lib.makeBinPath [pkgs.hyprland pkgs.jq]}:$PATH
     ${builtins.readFile ./scripts/window_move.sh}
   '';
 
+  # Wrapper script that resizes the focused Hyprland window by delta values.
   hyprWindowResize = pkgs.writeShellScriptBin "hypr-window-resize" ''
     export PATH=${pkgs.lib.makeBinPath [pkgs.hyprland pkgs.jq]}:$PATH
     ${builtins.readFile ./scripts/window_resize.sh}
   '';
 in {
+  # Hyprland keybinding and submap configuration namespace.
   wayland.windowManager.hyprland.settings = {
     # BINDINGS
     "$mainMod" = "SUPER";
 
+    # Primary keyboard shortcut bindings.
     bind = [
       # WINDOW FOCUS
       # ------------------
@@ -79,6 +83,7 @@ in {
       # Key: [SUPER] + [SHIFT] + [M]
       "$mainMod SHIFT, M, exit"
     ];
+    # Mouse-driven bindings using modifier + mouse buttons.
     bindm = [
       # WINDOW MOVE
       # ----------------------
@@ -92,22 +97,32 @@ in {
       # Key: [SUPER] + [Right Click]
       "$mainMod SHIFT, mouse:273, resizewindow"
     ];
+    # Raw Hyprland config snippets for submaps and multi-step key workflows.
     extraConfig = ''
       # KEYBOARD RESIZE: Enter a dedicated resize mode to avoid holding modifier keys
       # Key: [SUPER] + [R] to enter -> [h/j/k/l] to resize -> [Esc] to exit
       bind = $mainMod, R, submap, resize
+      # Name of the active submap handling resize-specific shortcuts.
       submap = resize
+      # Resize window left by 40px.
       binde = , h, exec, ${hyprWindowResize}/bin/hypr-window-resize -40 0
+      # Resize window right by 40px.
       binde = , l, exec, ${hyprWindowResize}/bin/hypr-window-resize 40 0
+      # Resize window upward by 40px.
       binde = , k, exec, ${hyprWindowResize}/bin/hypr-window-resize 0 -40
+      # Resize window downward by 40px.
       binde = , j, exec, ${hyprWindowResize}/bin/hypr-window-resize 0 40
+      # Leave resize submap and return to default keymap.
       bind = , escape, submap, reset
+      # Reset submap state to default.
       submap = reset
 
       # TOGGLE FLOATING / TILING: Switch state between floating and tiling
       # Key: [SUPER] + [V]
       bind = $mainMod, V, togglefloating
+      # Normalize floating window size after toggling.
       bind = $mainMod, V, resizeactive, exact 50% 50%
+      # Center floating window after toggling.
       bind = $mainMod, V, centerwindow
     '';
   };

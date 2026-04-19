@@ -106,6 +106,8 @@ Each module is self-contained: no cross-references, no shared variables between 
 
 ### `hardware/`
 - **audio.nix** — PipeWire + WirePlumber, ALSA enabled, PulseAudio daemon disabled, no 32-bit ALSA
+- **cpu-base.nix** — Cross-vendor CPU hardening baseline shared by Intel and AMD modules
+- **cpu-amd.nix** — Microcode updates, redistributable firmware, `kvm-amd` module
 - **cpu-intel.nix** — Microcode updates, redistributable firmware, `kvm-intel` module
 - **gpu-nvidia.nix** — Proprietary driver pinned to kernel, modesetting, VRAM suspend/resume, container toolkit, 32-bit libs
 - **bluetooth.nix** — BlueZ enabled, radio off at boot

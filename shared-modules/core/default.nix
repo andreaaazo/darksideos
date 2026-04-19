@@ -5,6 +5,7 @@
   stateVersion,
   ...
 }: {
+  # Import the baseline core modules shared by all hosts.
   imports = [
     ./boot.nix
     ./locale.nix

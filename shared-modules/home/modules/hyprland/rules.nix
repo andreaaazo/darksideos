@@ -1,4 +1,5 @@
 {
+  # Hyprland window rule list applied at runtime.
   wayland.windowManager.hyprland.settings.windowrulev2 = [
     # SPOTIFY OPACITY
     # Forces Spotify to render with fixed transparency in both active and inactive states, overriding any opacity settings

@@ -13,6 +13,7 @@
     # Hides impermanence bind mounts from df, mount, and file manager GUIs (reduces noise, purely cosmetic).
     hideMounts = true;
 
+    # Persistent directory bind mount declarations.
     directories = [
       # UID/GID allocation state (without this, user IDs could shift after reboot and file ownership breaks).
       "/var/lib/nixos"
@@ -29,6 +30,7 @@
       # "/var/lib/systemd/coredump"
     ];
 
+    # Persistent single-file bind mount declarations.
     files = [
       # Stable 128-bit machine identifier used by systemd journal, D-Bus, and DHCP client for consistent identity across reboots.
       "/etc/machine-id"

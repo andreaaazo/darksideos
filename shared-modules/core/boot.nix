@@ -5,6 +5,7 @@
   pkgs,
   ...
 }: {
+  # Boot-level configuration namespace for kernel, initrd, and bootloader behavior.
   boot = {
     # Keep initrd logs quiet to reduce boot noise and avoid unnecessary console churn.
     initrd.verbose = false;
@@ -12,7 +13,9 @@
     # Use mkDefault to stay compatible with NixOS test instrumentation overrides.
     consoleLogLevel = lib.mkDefault 3;
 
+    # Bootloader configuration namespace.
     loader = {
+      # systemd-boot-specific options.
       systemd-boot = {
         # Use systemd-boot as UEFI bootloader (lightweight, no GRUB overhead).
         enable = true;
@@ -30,8 +33,11 @@
     kernelPackages = pkgs.linuxPackages_latest;
     # Minimize boot-time log noise while keeping diagnostics available when needed.
     kernelParams = [
+      # Reduces boot-time console noise for a clean startup.
       "quiet"
+      # Keeps kernel console output at warning-and-above severity.
       "loglevel=3"
+      # Reduces udev daemon verbosity during early userspace startup.
       "udev.log_level=3"
     ];
   };

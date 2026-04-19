@@ -1,4 +1,5 @@
 {
+  # Hyprland input namespace for pointer and focus behavior.
   wayland.windowManager.hyprland.settings.input = {
     # FOCUS FOLLOWS MOUSE
     # Window under the cursor becomes focused automatically

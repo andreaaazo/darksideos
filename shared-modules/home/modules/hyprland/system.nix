@@ -1,5 +1,7 @@
 {
+  # Hyprland global settings namespace.
   wayland.windowManager.hyprland.settings = {
+    # Miscellaneous compositor behavior toggles.
     misc = {
       # BRANDING LOGO
       # Hides the Hyprland logo to keep startup clean
