@@ -28,4 +28,5 @@ jobs:
       - name: Run VM tests
         env:
           VM_SCOPE: full
+          VM_SHOW_NIXOS_LOGS: false
         run: bash ./tests/local/scripts/check-vm.sh
