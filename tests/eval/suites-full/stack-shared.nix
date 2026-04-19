@@ -27,7 +27,8 @@
       (name: let
         svc = config.systemd.services.${name};
       in
-        (builtins.length (svc.wantedBy or [])) > 0
+        (builtins.length (svc.wantedBy or []))
+        > 0
         || (builtins.length (svc.requiredBy or [])) > 0
         || (builtins.length (svc.upheldBy or [])) > 0)
       (builtins.attrNames config.systemd.services));
