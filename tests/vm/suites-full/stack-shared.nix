@@ -84,6 +84,27 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-stack-shared-007",
+        "home-manager service unit for andrea is loaded",
+        "systemctl show -p LoadState --value home-manager-andrea.service | grep -x 'loaded'",
+        severity="high",
+        rationale="Full stack should produce a loadable Home Manager activation unit",
+    )
+    assert_command(
+        "vm-stack-shared-008",
+        "NVIDIA modesetting kernel parameter remains active",
+        "grep -Eq '(^| )nvidia-drm\\.modeset=1( |$)' /proc/cmdline",
+        severity="high",
+        rationale="Full stack must preserve hardware GPU runtime policy from shared modules",
+    )
+    assert_command(
+        "vm-stack-shared-009",
+        "andrea profile resolves to immutable nix store path",
+        "readlink -f /etc/profiles/per-user/andrea | grep -E '^/nix/store/' >/dev/null",
+        severity="high",
+        rationale="Full stack should keep user profile materialization immutable and reproducible",
+    )
+    assert_command(
+        "vm-stack-shared-010",
         "no failed units after full-stack activation",
         "test \"$(systemctl list-units --failed --plain --no-legend --all | wc -l)\" -eq 0",
         severity="critical",
