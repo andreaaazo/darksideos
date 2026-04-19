@@ -4,6 +4,7 @@
   # System clock set to CET/CEST with automatic DST switching.
   time.timeZone = "Europe/Zurich";
 
+  # Locale subsystem settings (language, generated locales, LC overrides).
   i18n = {
     # System language is English.
     defaultLocale = "en_US.UTF-8";
@@ -13,6 +14,7 @@
       "en_US.UTF-8/UTF-8"
       "de_CH.UTF-8/UTF-8"
     ];
+    # Per-category locale overrides for formatting-sensitive domains.
     extraLocaleSettings = {
       # Date/time formatting follows Swiss-German conventions
       LC_TIME = "de_CH.UTF-8";
@@ -32,7 +34,9 @@
 
   # Graphical sessions (X11/Wayland) keyboard layout
   services.xserver.xkb = {
+    # Use Swiss keyboard layout in graphical sessions.
     layout = "ch";
+    # Use German variant of the Swiss keyboard map.
     variant = "de";
   };
 }

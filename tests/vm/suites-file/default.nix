@@ -3,12 +3,14 @@
   pkgs,
   home-manager,
   impermanence,
+  zenBrowser,
 }: let
   vmLib = import ../lib {
     inherit
       pkgs
       home-manager
       impermanence
+      zenBrowser
       ;
   };
 in

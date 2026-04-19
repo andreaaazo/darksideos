@@ -2,11 +2,13 @@
 {
   hostName ? "vm-test-host",
   stateVersion ? "25.11",
+  zenBrowser,
 }: {
   _module.args = {
     inherit
       hostName
       stateVersion
+      zenBrowser
       ;
   };
 }

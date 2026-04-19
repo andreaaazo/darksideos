@@ -4,10 +4,12 @@
   # Allow unfree packages from nixpkgs (e.g. for firmware blobs, GPU drivers, etc.)
   nixpkgs.config.allowUnfree = true;
 
+  # Nix daemon namespace (channels, settings, GC, and store optimization).
   nix = {
     # Disable legacy channel workflow (flakes-only).
     channel.enable = false;
 
+    # Core Nix daemon runtime settings.
     settings = {
       # Enables nix build/nix flake CLI and flakes support (required for workflow)
       experimental-features = [
@@ -17,8 +19,11 @@
       # Automatically hardlinks identical files in /nix/store (saves disk space, especially with many generations)
       auto-optimise-store = true;
       # Parallelism and fail-fast behavior for faster, more predictable local builds.
+      # Allow Nix to auto-detect local CPU core count.
       max-jobs = "auto";
+      # Let each build use all detected cores unless derivation overrides it.
       cores = 0;
+      # Disable fallback compilation from source when substitutes fail.
       fallback = false;
       # Allows root and sudo users to push to binary caches and use substituters (required for Cachix CI workflow)
       trusted-users = [
@@ -27,6 +32,7 @@
       ];
     };
 
+    # Automatic garbage collection policy.
     gc = {
       # Enables scheduled automatic garbage collection of unused store paths.
       automatic = true;
@@ -38,9 +44,11 @@
       options = "--delete-older-than 7d";
     };
 
+    # Scheduled Nix store deduplication policy.
     optimise = {
       # Periodic store deduplication in addition to write-time optimization.
       automatic = true;
+      # Run store optimization weekly to keep deduplication cost predictable.
       dates = "weekly";
     };
   };

@@ -1,7 +1,9 @@
 {
   # Cursor size is user policy; theme stays system policy.
   home.sessionVariables = {
+    # X11/XWayland cursor size in pixels.
     XCURSOR_SIZE = "24";
+    # Hyprcursor size in pixels for native Hyprland cursor rendering.
     HYPRCURSOR_SIZE = "24";
   };
 

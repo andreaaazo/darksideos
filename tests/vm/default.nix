@@ -4,12 +4,14 @@
   pkgs,
   home-manager,
   impermanence,
+  zenBrowser,
 }:
 (import ./suites-file {
   inherit
     pkgs
     home-manager
     impermanence
+    zenBrowser
     ;
 })
 // (import ./suites-module {
@@ -17,6 +19,7 @@
     pkgs
     home-manager
     impermanence
+    zenBrowser
     ;
 })
 // (import ./suites-full {
@@ -24,5 +27,6 @@
     pkgs
     home-manager
     impermanence
+    zenBrowser
     ;
 })
