@@ -39,6 +39,20 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-module-graphics-005",
+        "default portal routing order is hyprland then gtk",
+        "grep -E '^default=hyprland;gtk$' /etc/xdg/xdg-desktop-portal/portals.conf >/dev/null",
+        severity="high",
+        rationale="Graphics integration must keep deterministic backend precedence for portal requests",
+    )
+    assert_command(
+        "vm-module-graphics-006",
+        "ScreenCast routing targets hyprland backend",
+        "grep -E '^org\\.freedesktop\\.impl\\.portal\\.ScreenCast=hyprland$' /etc/xdg/xdg-desktop-portal/portals.conf >/dev/null",
+        severity="high",
+        rationale="Graphics integration must keep screencast requests bound to Hyprland backend",
+    )
+    assert_command(
+        "vm-module-graphics-007",
         "no failed units after integrated graphics activation",
         "test \"$(systemctl list-units --failed --plain --no-legend --all | wc -l)\" -eq 0",
         severity="high",

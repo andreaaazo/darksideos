@@ -33,6 +33,13 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-module-impermanence-004",
+        "/etc/ssh mount unit carries x-gvfs-hide option",
+        "grep -Fx 'Options=bind,x-gvfs-hide' /etc/systemd/system/etc-ssh.mount >/dev/null",
+        severity="high",
+        rationale="Impermanence shared mount options should stay deterministic and hidden from desktop file managers",
+    )
+    assert_command(
+        "vm-module-impermanence-005",
         "no failed units after integrated impermanence activation",
         "test \"$(systemctl list-units --failed --plain --no-legend --all | wc -l)\" -eq 0",
         severity="high",

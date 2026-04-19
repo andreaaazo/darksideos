@@ -56,6 +56,27 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-module-core-005",
+        "root account is locked in shadow",
+        "awk -F: '$1==\"root\" {print $2}' /etc/shadow | grep -Eq '^!'",
+        severity="critical",
+        rationale="Core user policy requires root password login to stay disabled",
+    )
+    assert_command(
+        "vm-module-core-006",
+        "andrea uid remains pinned to 1000",
+        "id -u andrea | grep -x '1000'",
+        severity="high",
+        rationale="Core user policy requires stable UID for deterministic ownership semantics",
+    )
+    assert_command(
+        "vm-module-core-007",
+        "sudo enforces pty and zero timestamp timeout",
+        "sh -c 'for f in /etc/sudoers /etc/sudoers.d/*; do [ -f \"$f\" ] || continue; grep -Eq \"^[[:space:]]*Defaults[[:space:]]+use_pty([[:space:]]|$)\" \"$f\" && grep -Eq \"^[[:space:]]*Defaults[[:space:]]+timestamp_timeout=0([[:space:]]|$)\" \"$f\" && exit 0; done; exit 1'",
+        severity="high",
+        rationale="Core sudo hardening must preserve strict re-authentication and pty auditing",
+    )
+    assert_command(
+        "vm-module-core-008",
         "no failed units after integrated core activation",
         "test \"$(systemctl list-units --failed --plain --no-legend --all | wc -l)\" -eq 0",
         severity="high",

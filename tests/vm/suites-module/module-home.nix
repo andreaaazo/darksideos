@@ -48,6 +48,27 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-module-home-005",
+        "home-manager service is loaded",
+        "systemctl show -p LoadState --value home-manager-andrea.service | grep -x 'loaded'",
+        severity="high",
+        rationale="Integrated home module should produce a loadable Home Manager unit",
+    )
+    assert_command(
+        "vm-module-home-006",
+        "home-manager service has ExecStart command",
+        "systemctl show -p ExecStart --value home-manager-andrea.service | grep -q .",
+        severity="high",
+        rationale="Integrated home module should materialize concrete activation command",
+    )
+    assert_command(
+        "vm-module-home-007",
+        "andrea profile resolves to immutable nix store path",
+        "readlink -f /etc/profiles/per-user/andrea | grep -E '^/nix/store/' >/dev/null",
+        severity="high",
+        rationale="Home integration should keep per-user profile immutable and reproducible",
+    )
+    assert_command(
+        "vm-module-home-008",
         "no failed units after integrated home activation",
         "test \"$(systemctl list-units --failed --plain --no-legend --all | wc -l)\" -eq 0",
         severity="high",

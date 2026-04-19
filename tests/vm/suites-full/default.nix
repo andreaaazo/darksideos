@@ -1,9 +1,16 @@
-# VM suites aggregator for full module-integration and full-stack tests.
-{vmLib}: {
-  vm-module-core = import ./module-core.nix {inherit vmLib;};
-  vm-module-graphics = import ./module-graphics.nix {inherit vmLib;};
-  vm-module-hardware = import ./module-hardware.nix {inherit vmLib;};
-  vm-module-home = import ./module-home.nix {inherit vmLib;};
-  vm-module-impermanence = import ./module-impermanence.nix {inherit vmLib;};
+# VM suites aggregator for full-stack integration tests.
+{
+  pkgs,
+  home-manager,
+  impermanence,
+}: let
+  vmLib = import ../lib {
+    inherit
+      pkgs
+      home-manager
+      impermanence
+      ;
+  };
+in {
   vm-stack-shared = import ./stack-shared.nix {inherit vmLib;};
 }

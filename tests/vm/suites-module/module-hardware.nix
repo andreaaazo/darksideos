@@ -53,6 +53,20 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-module-hardware-005",
+        "32-bit OpenGL runtime path is absent",
+        "! test -d /run/opengl-driver-32/lib",
+        severity="high",
+        rationale="Shared hardware baseline keeps 32-bit graphics compatibility disabled",
+    )
+    assert_command(
+        "vm-module-hardware-006",
+        "PulseAudio daemon unit is not enabled",
+        "! systemctl cat pulseaudio.service >/dev/null 2>&1",
+        severity="medium",
+        rationale="Audio baseline relies on PipeWire/WirePlumber and should avoid PulseAudio daemon conflicts",
+    )
+    assert_command(
+        "vm-module-hardware-007",
         "no failed units after integrated hardware activation",
         "test \"$(systemctl list-units --failed --plain --no-legend --all | wc -l)\" -eq 0",
         severity="high",
