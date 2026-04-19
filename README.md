@@ -14,17 +14,43 @@ Personal NixOS infrastructure by Andrea Zorzi.
 </h1>
 
 <p align="center">
-  <a href="#machines">Machines</a> •
+  <a href="#introduction">Introduction</a> •
   <a href="#project-architecture">Project Architecture</a> •
   <a href="#stack">Stack</a> •
   <a href="#shared-modules-detail">Shared Modules Detail</a> •
   <a href="#suggested-disk-layout">Suggested Disk Layout</a> •
-  <a href="#adding-a-new-machine">Adding a New Machine</a>
+  <a href="#developer-guide">Developer Guide</a>
 </p>
 
 ---
 
-## Machines
+## Introduction
+
+### Purpose
+
+DarksideOS is a personal, production-oriented NixOS infrastructure project built to keep multiple machines aligned under one deterministic source of truth. It exists to eliminate configuration drift, reduce operational ambiguity, and make every system change explicit, reviewable, and reversible.
+
+### Design Characteristics
+
+These characteristics define the decision framework used across architecture, module boundaries, operational workflows, and release quality gates. They are not branding terms: they are practical constraints used to evaluate every change, from host composition to shared-module design, testing strategy, and CI/CD behavior.
+
+```csv
+Fast,Extreme,Minimal,Up-to-date,New,Essential,Indispensable,Private,Protected,Secure,Cutting-edge,Agnostic,Modular,Bloat-free,Declarative,Reproducible,Deterministic,Immutable,Resilient,Reversible,Optimized,Lightweight,Transparent,Verifiable,Rigorous,Rational,Orthogonal
+```
+
+### Structure
+
+The repository follows a modular monolith model with strict responsibility boundaries. Directories under `hosts/<hostname>/` are intentionally thin and contain only host composition details: machine imports, override values, disk declaration (`disk.nix`), and generated hardware discovery (`hardware-configuration.nix`). Shared behavior is implemented in `shared-modules/`, where each module is a standalone vertical slice (`core`, `graphics`, `hardware`, `home`, `impermanence`) reusable across machines without hidden coupling.
+
+### Reproducibility
+
+At root level, `flake.nix` defines system outputs and wiring, while `flake.lock` pins exact dependency revisions for reproducible execution across local development and CI. This guarantees deterministic input resolution and transparent change control. Governance files (`CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`) define delivery, security, and collaboration rules.
+
+### Validation
+
+Validation is organized as a layered pipeline, not a single coarse check. Static checks and host evaluation guard baseline correctness, eval tests enforce configuration invariants, and VM tests verify runtime behavior. For command usage and prerequisites, see [Developer Guide](#developer-guide) and [Runtime Requirements](#runtime-requirements). Local and CI workflows stay aligned by reusing the same script entrypoints.
+
+### Machines
 
 | Hostname | Role | CPU | GPU |
 |---|---|---|---|
@@ -110,13 +136,37 @@ tmpfs /                     RAM-backed, wiped on boot (50% RAM)
     └── @swap   → /swap      Swapfile 32GB (nodatacow, no compression)
 ```
 
-## Adding a New Machine
+## Developer Guide
+
+### Local Testing
+
+#### Runtime Requirements
+
+- Docker is required for local runner commands.
+- VM checks require `/dev/kvm` passthrough for reliable performance and timing-sensitive assertions.
+- Runtime tooling is isolated in the container environment; only repository files mounted in `/work` are modified when applicable.
+
+All local checks run through Docker to keep host systems clean and to match CI behavior.
+GitHub Actions calls the same scripts in `tests/local/scripts/` to avoid command drift.
+
+| Command | Purpose |
+|---|---|
+| `just check-code` | Level 1 checks: formatting, linting, dead code, and host configuration evaluation |
+| `just check-eval` | Level 2 checks: runs all evaluation tests (`evalTests`) |
+| `just check-vm` | Level 3 checks: runs all VM tests (`vmTests`) |
+| `just check-all` | Runs `check-code`, `check-eval`, and `check-vm` in sequence |
+| `just format-code` | Formats repository files locally via Docker runner |
+| `just lint-code` | Runs linting check output only |
+| `just dead-code` | Runs dead code check output only |
+| `just update-lock` | Updates `flake.lock` deterministically via Docker runner |
+
+### Adding a New Machine
 
 1. **Create host directory**
    ```
    hosts/<hostname>/
      default.nix # Entry-Point (override variables here)
-     disk.nix # Disk Setup
+     disk.nix # Disk Setup
      hardware-configuration.nix # NixOS auto-generated file
    ```
 
