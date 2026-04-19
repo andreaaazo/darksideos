@@ -9,12 +9,27 @@ set -euo pipefail
 #         Without VM_TARGET, run all file-level tests
 scope="${VM_SCOPE:-}"
 target="${VM_TARGET:-}"
+show_nixos_logs="${VM_SHOW_NIXOS_LOGS:-}"
 
 if [[ -z "$scope" ]]; then
   echo "VM_SCOPE is required. Supported values: full, module, file." >&2
   echo "Example: VM_SCOPE=full just check-vm" >&2
   exit 1
 fi
+
+if [[ -z "$show_nixos_logs" ]]; then
+  echo "VM_SHOW_NIXOS_LOGS is required. Supported values: true, false." >&2
+  echo "Example: VM_SCOPE=full VM_SHOW_NIXOS_LOGS=false just check-vm" >&2
+  exit 1
+fi
+
+case "$show_nixos_logs" in
+  true | false) ;;
+  *)
+    echo "Unsupported VM_SHOW_NIXOS_LOGS='$show_nixos_logs'. Supported values: true, false." >&2
+    exit 1
+    ;;
+esac
 
 tests="$(nix eval 'path:.#vmTests.x86_64-linux' --apply 'builtins.attrNames' --json)"
 file_tests="$(echo "$tests" | jq -r '.[] | select(startswith("vm-module-") | not) | select(startswith("vm-stack-") | not)' | sort -u)"
@@ -86,6 +101,7 @@ case "$scope" in
     ;;
   *)
     echo "Unsupported VM_SCOPE='$scope'. Supported values: full, module, file." >&2
+    echo "Examples: VM_SCOPE=full just check-vm | VM_SCOPE=file VM_TARGET=vm-core-nix just check-vm" >&2
     exit 1
     ;;
 esac
@@ -101,9 +117,33 @@ fi
 
 for test in $selected_tests; do
   echo "Running ${test}"
-  nix build \
-    --no-write-lock-file \
-    --option system-features "benchmark big-parallel nixos-test kvm uid-range" \
-    "path:.#vmTests.x86_64-linux.${test}" \
-    --print-build-logs
+  if [[ "$show_nixos_logs" == "true" ]]; then
+    nix build \
+      --no-write-lock-file \
+      --option system-features "benchmark big-parallel nixos-test kvm uid-range" \
+      "path:.#vmTests.x86_64-linux.${test}" \
+      --print-build-logs
+  else
+    log_file="$(mktemp)"
+    if nix build \
+      --no-write-lock-file \
+      --option system-features "benchmark big-parallel nixos-test kvm uid-range" \
+      "path:.#vmTests.x86_64-linux.${test}" \
+      --print-build-logs >"$log_file" 2>&1; then
+      if grep -E '\[PASS\]|\[FAIL\]|(Expected|Actual|Severity|Rationale):' "$log_file" >/dev/null 2>&1; then
+        grep -E '\[PASS\]|\[FAIL\]|(Expected|Actual|Severity|Rationale):' "$log_file"
+      else
+        echo "[PASS] ${test}: completed"
+      fi
+    else
+      if grep -E '\[PASS\]|\[FAIL\]|(Expected|Actual|Severity|Rationale):' "$log_file" >/dev/null 2>&1; then
+        grep -E '\[PASS\]|\[FAIL\]|(Expected|Actual|Severity|Rationale):' "$log_file" >&2
+      else
+        echo "[FAIL] ${test}: build failed without assertion markers." >&2
+      fi
+      rm -f "$log_file"
+      exit 1
+    fi
+    rm -f "$log_file"
+  fi
 done

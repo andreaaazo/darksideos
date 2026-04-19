@@ -154,7 +154,7 @@ The VM runner supports scoped execution through `VM_SCOPE` and optional `VM_TARG
 |---|---|
 | `just check-code` | Runs formatting, linting, dead code, and host configuration evaluation |
 | `just check-eval` | Runs all evaluation tests (`evalTests`) |
-| `just check-vm` | Runs VM tests. Requires `VM_SCOPE`. See [VM Scope Control](#vm-scope-control) |
+| `just check-vm` | Runs VM tests. Requires `VM_SCOPE` and `VM_SHOW_NIXOS_LOGS`. See [VM Scope Control](#vm-scope-control) |
 | `just check-all` | Runs `check-code`, `check-eval`, and `check-vm` in sequence |
 | `just format-code` | Formats repository files locally via Docker runner |
 | `just lint-code` | Runs linting check output only |
@@ -164,6 +164,9 @@ The VM runner supports scoped execution through `VM_SCOPE` and optional `VM_TARG
 #### VM Scope Control (`just check-vm` only)
 
 - `VM_SCOPE` is required for `just check-vm`.
+- `VM_SHOW_NIXOS_LOGS` is required for `just check-vm`:
+  - `true`: show full Nix/NixOS build logs
+  - `false`: show assertion output only (`[PASS]`/`[FAIL]` + Expected/Actual/Severity/Rationale)
 - `VM_SCOPE=full`: run complete dump (`suites-file` + `suites-module` + `suites-full`)
 - `VM_SCOPE=file`: without `VM_TARGET`, run all file-level tests; with `VM_TARGET`, run one file-level test (example: `vm-core-nix`)
 - `VM_SCOPE=module`: without `VM_TARGET`, run all module dumps; with `VM_TARGET`, run one module dump (file-level tests for module + `vm-module-<module>`)
@@ -174,13 +177,13 @@ Examples:
 
 ```bash
 # Full VM dump
-VM_SCOPE=full just check-vm
+VM_SCOPE=full VM_SHOW_NIXOS_LOGS=false just check-vm
 
 # Single file-level VM test
-VM_SCOPE=file VM_TARGET=vm-core-nix just check-vm
+VM_SCOPE=file VM_TARGET=vm-core-nix VM_SHOW_NIXOS_LOGS=true just check-vm
 
 # Single module VM dump (all vm-home-* + vm-module-home)
-VM_SCOPE=module VM_TARGET=home just check-vm
+VM_SCOPE=module VM_TARGET=home VM_SHOW_NIXOS_LOGS=false just check-vm
 ```
 
 CI policy:

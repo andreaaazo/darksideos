@@ -10,8 +10,6 @@
 
     # Additional portal backends available to xdg-desktop-portal.
     extraPortals = with pkgs; [
-      # Hyprland-native portal backend for screen sharing, window/output selection, and compositor integration.
-      xdg-desktop-portal-hyprland
       # GTK portal backend that renders "Open file" / "Save as" dialogs and print dialogs for all apps.
       xdg-desktop-portal-gtk
     ];

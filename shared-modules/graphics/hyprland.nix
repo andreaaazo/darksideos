@@ -13,7 +13,7 @@
     systemd.setPath.enable = false;
     # Explicit package selection.
     package = pkgs.hyprland;
-    # Explicit Hyprland portal backend package.
+    # Explicit Hyprland portal backend package (single owner in graphics stack).
     portalPackage = pkgs.xdg-desktop-portal-hyprland;
   };
 

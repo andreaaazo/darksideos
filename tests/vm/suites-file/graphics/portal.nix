@@ -38,25 +38,11 @@ vmLib.mkVmTest {
         rationale="GTK portal backend user service must exist",
     )
     assert_command(
-        "vm-portal-005",
-        "xdg-desktop-portal-hyprland service unit is installed",
-        "test -f /run/current-system/sw/share/systemd/user/xdg-desktop-portal-hyprland.service",
-        severity="high",
-        rationale="Hyprland portal backend user service must exist",
-    )
-    assert_command(
         "vm-portal-006",
         "GTK portal definition is installed",
         "test -f /run/current-system/sw/share/xdg-desktop-portal/portals/gtk.portal",
         severity="high",
         rationale="GTK backend must advertise implemented portal interfaces",
-    )
-    assert_command(
-        "vm-portal-007",
-        "Hyprland portal definition is installed",
-        "test -f /run/current-system/sw/share/xdg-desktop-portal/portals/hyprland.portal",
-        severity="high",
-        rationale="Hyprland backend must advertise implemented portal interfaces",
     )
     assert_command(
         "vm-portal-008",
@@ -71,13 +57,6 @@ vmLib.mkVmTest {
         "test -f /run/current-system/sw/share/dbus-1/services/org.freedesktop.impl.portal.desktop.gtk.service",
         severity="high",
         rationale="GTK backend must be discoverable by D-Bus service activation",
-    )
-    assert_command(
-        "vm-portal-010",
-        "Hyprland portal D-Bus service file is installed",
-        "test -f /run/current-system/sw/share/dbus-1/services/org.freedesktop.impl.portal.desktop.hyprland.service",
-        severity="high",
-        rationale="Hyprland backend must be discoverable by D-Bus service activation",
     )
     assert_command(
         "vm-portal-011",

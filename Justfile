@@ -26,6 +26,7 @@ check-vm: docker-build
       -e NIX_CONFIG='experimental-features = nix-command flakes' \
       -e VM_SCOPE \
       -e VM_TARGET \
+      -e VM_SHOW_NIXOS_LOGS \
       --device /dev/kvm \
       -v "$PWD:/work" \
       -w /work \
