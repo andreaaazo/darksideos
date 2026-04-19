@@ -30,15 +30,18 @@
     ] []
     config;
 
-  defaultHttpApp = pkgs.lib.attrByPath [
-    "home-manager"
-    "users"
-    "andrea"
-    "xdg"
-    "mimeApps"
-    "defaultApplications"
-    "x-scheme-handler/http"
-  ] null config;
+  defaultHttpApp =
+    pkgs.lib.attrByPath [
+      "home-manager"
+      "users"
+      "andrea"
+      "xdg"
+      "mimeApps"
+      "defaultApplications"
+      "x-scheme-handler/http"
+    ]
+    null
+    config;
 
   assertions = [
     (testLib.mkResult {
@@ -65,7 +68,8 @@
       id = "home-zen-browser-003";
       name = "HTTP default application is Zen twilight desktop entry";
       passed =
-        defaultHttpApp == "zen-twilight.desktop"
+        defaultHttpApp
+        == "zen-twilight.desktop"
         || (builtins.isList defaultHttpApp && defaultHttpApp == ["zen-twilight.desktop"]);
       expected = "xdg.mimeApps.defaultApplications.x-scheme-handler/http = zen-twilight.desktop";
       actual = defaultHttpApp;
