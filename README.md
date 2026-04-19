@@ -146,17 +146,112 @@ tmpfs /                     RAM-backed, wiped on boot (50% RAM)
 
 All local checks run through Docker to keep host systems clean and to match CI behavior.
 GitHub Actions calls the same scripts in `tests/local/scripts/` to avoid command drift.
+The VM runner supports scoped execution through `VM_SCOPE` and optional `VM_TARGET`.
 
 | Command | Purpose |
 |---|---|
 | `just check-code` | Level 1 checks: formatting, linting, dead code, and host configuration evaluation |
 | `just check-eval` | Level 2 checks: runs all evaluation tests (`evalTests`) |
-| `just check-vm` | Level 3 checks: runs all VM tests (`vmTests`) |
+| `just check-vm` | Level 3 checks: complete VM dump locally (file + module + full-stack) |
 | `just check-all` | Runs `check-code`, `check-eval`, and `check-vm` in sequence |
 | `just format-code` | Formats repository files locally via Docker runner |
 | `just lint-code` | Runs linting check output only |
 | `just dead-code` | Runs dead code check output only |
 | `just update-lock` | Updates `flake.lock` deterministically via Docker runner |
+
+#### VM Scope Control
+
+- `VM_SCOPE=full` (default): run complete dump (`suites-file` + `suites-module` + `suites-full`)
+- `VM_SCOPE=file`: without `VM_TARGET`, run all file-level tests; with `VM_TARGET`, run one file-level test (example: `vm-core-nix`)
+- `VM_SCOPE=module`: without `VM_TARGET`, run all module dumps; with `VM_TARGET`, run one module dump (file-level tests for module + `vm-module-<module>`)
+
+Examples:
+
+```bash
+# Local full VM coverage dump (default behavior used by just check-vm)
+just check-vm
+
+# Single file-level VM test
+docker run --rm --device /dev/kvm -e NIX_CONFIG='experimental-features = nix-command flakes' -e VM_SCOPE=file -e VM_TARGET=vm-core-nix -v "$PWD:/work" -w /work darksideos-checks:latest bash ./tests/local/scripts/check-vm.sh
+
+# All file-level VM tests
+docker run --rm --device /dev/kvm -e NIX_CONFIG='experimental-features = nix-command flakes' -e VM_SCOPE=file -v "$PWD:/work" -w /work darksideos-checks:latest bash ./tests/local/scripts/check-vm.sh
+
+# Single module VM dump (all vm-home-* + vm-module-home)
+docker run --rm --device /dev/kvm -e NIX_CONFIG='experimental-features = nix-command flakes' -e VM_SCOPE=module -e VM_TARGET=home -v "$PWD:/work" -w /work darksideos-checks:latest bash ./tests/local/scripts/check-vm.sh
+
+# All module dumps (each module file-level tests + vm-module-*)
+docker run --rm --device /dev/kvm -e NIX_CONFIG='experimental-features = nix-command flakes' -e VM_SCOPE=module -v "$PWD:/work" -w /work darksideos-checks:latest bash ./tests/local/scripts/check-vm.sh
+
+# Explicit full dump
+docker run --rm --device /dev/kvm -e NIX_CONFIG='experimental-features = nix-command flakes' -e VM_SCOPE=full -v "$PWD:/work" -w /work darksideos-checks:latest bash ./tests/local/scripts/check-vm.sh
+```
+
+CI policy:
+
+- GitHub Actions VM workflow sets `VM_SCOPE=full` to run complete VM coverage in CI.
+
+### Writing New Tests
+
+Keep tests aligned with shared modules and add assertions at right level.
+
+| Level | Purpose | Location | Registration |
+|---|---|---|---|
+| Eval (config invariants) | Validate `config.*` values without booting VM | `tests/eval/suites/<module>/<file>.nix` | Add output in `tests/eval/suites/<module>/default.nix` |
+| VM file-level | Validate runtime behavior for one shared file | `tests/vm/suites-file/<module>/<file>.nix` | Add output in `tests/vm/suites-file/<module>/default.nix` |
+| VM module-level | Validate integrated behavior of one module entrypoint | `tests/vm/suites-module/module-<module>.nix` | Add output in `tests/vm/suites-module/default.nix` |
+| VM full-stack | Validate cross-module composition | `tests/vm/suites-full/stack-shared.nix` | Exported by `tests/vm/suites-full/default.nix` |
+
+Authoring rules:
+
+1. Mirror module path 1:1 between `shared-modules/` and `tests/eval/suites` + `tests/vm/suites-file`.
+2. Put per-file invariants in file-level tests first; add module/full tests only for integration invariants.
+3. Keep assertions explicit and stable: unique ID, clear name, severity, rationale.
+4. Reuse helpers, do not reimplement harnesses:
+   - Eval: `testLib.getConfig`, `testLib.assert*`, `testLib.mkCheckScript`
+   - VM: `vmLib.mkVmTest`, `${vmLib.assertions.common}`, `assert_command(...)`
+
+Quick templates:
+
+```nix
+# tests/eval/suites/<module>/<file>.nix
+{ pkgs, testLib }: let
+  config = testLib.getConfig { modules = [ ../../../../shared-modules/<module>/<file>.nix ]; };
+  assertions = [
+    (testLib.assertEnabled {
+      id = "<file>-001";
+      name = "<invariant>";
+      inherit config;
+      path = [ "..." ];
+      severity = "high";
+      rationale = "<why this matters>";
+    })
+  ];
+in
+pkgs.runCommand "eval-<module>-<file>" {} (testLib.mkCheckScript {
+  name = "<module>/<file>";
+  assertionResults = assertions;
+})
+```
+
+```nix
+# tests/vm/suites-file/<module>/<file>.nix
+{ vmLib }:
+vmLib.mkVmTest {
+  name = "<module>-<file>";
+  nodeModules = [ ../../../../shared-modules/<module>/<file>.nix ];
+  testScript = ''
+    ${vmLib.assertions.common}
+    assert_command(
+        "vm-<file>-001",
+        "<invariant>",
+        "<shell check>",
+        severity="high",
+        rationale="<why this matters>",
+    )
+  '';
+}
+```
 
 ### Adding a New Machine
 

@@ -26,4 +26,6 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Run VM tests
+        env:
+          VM_SCOPE: full
         run: bash ./tests/local/scripts/check-vm.sh
