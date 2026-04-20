@@ -6,9 +6,34 @@
   impermanence,
   sopsNix,
   zenBrowser,
-}: rec {
+}: let
+  # External NixOS modules consumed by eval test harnesses.
+  externalModules = {
+    homeManager = home-manager.nixosModules.home-manager;
+    inherit (impermanence.nixosModules) impermanence;
+    inherit (sopsNix.nixosModules) sops;
+  };
+
+  # Default specialArgs for shared-module evaluation.
+  # NOTE: zenBrowser is a flake input value (not a NixOS module), so it must be
+  # passed through specialArgs for modules that reference it in imports/config.
+  defaultSpecialArgs = {
+    hostName = "test-host";
+    stateVersion = "25.11";
+    inherit zenBrowser;
+  };
+
+  # Merge caller-provided stubs over deterministic defaults.
+  mkSpecialArgs = stubs: defaultSpecialArgs // stubs;
+in rec {
+  # Home-manager NixOS module for tests that need it.
+  hmModule = externalModules.homeManager;
+
+  # Impermanence NixOS module for tests that need it.
+  impermanenceModule = externalModules.impermanence;
+
   # SOPS-Nix module for tests that evaluate sops.* options.
-  sopsModule = sopsNix.nixosModules.sops;
+  sopsModule = externalModules.sops;
 
   # Evaluates a shared module using nixpkgs.lib.nixosSystem.
   # Returns the full NixOS config tree without building anything.
@@ -29,21 +54,10 @@
     modules,
     stubs ? {},
     extraModules ? [],
-  }: let
-    # Default stubs for common specialArgs used across shared-modules
-    defaultStubs = {
-      hostName = "test-host";
-      stateVersion = "25.11";
-      # Pass zenBrowser input to modules that import external Zen Browser Home Manager module.
-      inherit zenBrowser;
-    };
-
-    # Merge default stubs with caller-provided stubs
-    finalStubs = defaultStubs // stubs;
-  in
+  }:
     nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
-      specialArgs = finalStubs;
+      specialArgs = mkSpecialArgs stubs;
       modules = [sopsModule] ++ extraModules ++ modules;
     };
 
@@ -51,9 +65,16 @@
   # Convenience wrapper for evalSharedModule that returns only config.
   getConfig = args: (evalSharedModule args).config;
 
-  # Home-manager NixOS module for tests that need it.
-  hmModule = home-manager.nixosModules.home-manager;
-
-  # Impermanence NixOS module for tests that need it.
-  impermanenceModule = impermanence.nixosModules.impermanence;
+  # Returns enabled system service names for full-stack assertions.
+  getEnabledSystemServices = config:
+    builtins.sort builtins.lessThan
+    (builtins.filter
+      (name: let
+        svc = config.systemd.services.${name};
+      in
+        (builtins.length (svc.wantedBy or []))
+        > 0
+        || (builtins.length (svc.requiredBy or [])) > 0
+        || (builtins.length (svc.upheldBy or [])) > 0)
+      (builtins.attrNames config.systemd.services));
 }

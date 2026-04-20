@@ -18,29 +18,18 @@
   };
 
   assertions = [
-    (testLib.mkResult {
+    (testLib.assertAnyContainsStringified {
       id = "home-grim-001";
       name = "Grim package is in andrea profile";
-      passed =
-        builtins.any
-        (drv: pkgs.lib.hasInfix "grim" (toString drv))
-        (pkgs.lib.attrByPath [
-            "home-manager"
-            "users"
-            "andrea"
-            "home"
-            "packages"
-          ] []
-          config);
-      expected = "home.packages containing grim";
-      actual = builtins.map toString (pkgs.lib.attrByPath [
-          "home-manager"
-          "users"
-          "andrea"
-          "home"
-          "packages"
-        ] []
-        config);
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "home"
+        "packages"
+      ];
+      substring = "grim";
       severity = "high";
       rationale = "Standalone grim module should materialize grim binary in user profile";
     })

@@ -9,7 +9,7 @@
   sopsNix,
   zenBrowser,
 }: let
-  eval = import ./eval.nix {
+  evalLib = import ./eval.nix {
     inherit
       nixpkgs
       home-manager
@@ -18,18 +18,33 @@
       zenBrowser
       ;
   };
-  assertions = import ./assertions.nix {inherit lib;};
+  assertionsLib = import ./assertions.nix {inherit lib;};
 in {
   inherit pkgs;
-  inherit (eval) evalSharedModule getConfig hmModule impermanenceModule sopsModule;
+
+  # Eval/runtime helpers (module evaluation + shared fixtures).
   inherit
-    (assertions)
+    (evalLib)
+    evalSharedModule
+    getConfig
+    hmModule
+    impermanenceModule
+    sopsModule
+    getEnabledSystemServices
+    ;
+
+  # Assertion helpers (pure result primitives + check script builder).
+  inherit
+    (assertionsLib)
     mkResult
     formatFailure
     assertEqual
     assertEnabled
     assertDisabled
     assertContains
+    assertAnyContainsStringified
+    assertAnyHasSuffixStringified
+    assertAnyContainsAllStringified
     assertString
     assertStringContains
     runAssertions

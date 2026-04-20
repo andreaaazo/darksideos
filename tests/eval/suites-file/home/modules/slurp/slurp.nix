@@ -18,29 +18,18 @@
   };
 
   assertions = [
-    (testLib.mkResult {
+    (testLib.assertAnyContainsStringified {
       id = "home-slurp-001";
       name = "Slurp package is in andrea profile";
-      passed =
-        builtins.any
-        (drv: pkgs.lib.hasInfix "slurp" (toString drv))
-        (pkgs.lib.attrByPath [
-            "home-manager"
-            "users"
-            "andrea"
-            "home"
-            "packages"
-          ] []
-          config);
-      expected = "home.packages containing slurp";
-      actual = builtins.map toString (pkgs.lib.attrByPath [
-          "home-manager"
-          "users"
-          "andrea"
-          "home"
-          "packages"
-        ] []
-        config);
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "home"
+        "packages"
+      ];
+      substring = "slurp";
       severity = "high";
       rationale = "Standalone slurp module should materialize slurp binary in user profile";
     })

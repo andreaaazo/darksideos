@@ -138,6 +138,85 @@
       inherit actual;
     };
 
+  # Asserts that at least one list entry (stringified) contains substring.
+  assertAnyContainsStringified = {
+    id,
+    name,
+    config,
+    path,
+    substring,
+    severity ? "high",
+    rationale ? "",
+  }: let
+    actual = lib.attrByPath path [] config;
+    rendered = builtins.map builtins.toString actual;
+    passed = builtins.any (item: lib.hasInfix substring item) rendered;
+  in
+    mkResult {
+      inherit
+        id
+        name
+        passed
+        severity
+        rationale
+        ;
+      expected = "list containing an entry with ${builtins.toJSON substring}";
+      actual = rendered;
+    };
+
+  # Asserts that at least one list entry (stringified) ends with suffix.
+  assertAnyHasSuffixStringified = {
+    id,
+    name,
+    config,
+    path,
+    suffix,
+    severity ? "high",
+    rationale ? "",
+  }: let
+    actual = lib.attrByPath path [] config;
+    rendered = builtins.map builtins.toString actual;
+    passed = builtins.any (item: lib.hasSuffix suffix item) rendered;
+  in
+    mkResult {
+      inherit
+        id
+        name
+        passed
+        severity
+        rationale
+        ;
+      expected = "list containing an entry ending with ${builtins.toJSON suffix}";
+      actual = rendered;
+    };
+
+  # Asserts that at least one list entry (stringified) contains all substrings.
+  assertAnyContainsAllStringified = {
+    id,
+    name,
+    config,
+    path,
+    substrings,
+    severity ? "high",
+    rationale ? "",
+  }: let
+    actual = lib.attrByPath path [] config;
+    rendered = builtins.map builtins.toString actual;
+    entryContainsAll = item: builtins.all (substring: lib.hasInfix substring item) substrings;
+    passed = builtins.any entryContainsAll rendered;
+  in
+    mkResult {
+      inherit
+        id
+        name
+        passed
+        severity
+        rationale
+        ;
+      expected = "list containing an entry with all substrings ${builtins.toJSON substrings}";
+      actual = rendered;
+    };
+
   # Asserts that a string value equals expected.
   assertString = {
     id,
