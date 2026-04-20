@@ -4,6 +4,7 @@
   pkgs,
   home-manager,
   impermanence,
+  sopsNix,
   zenBrowser,
 }:
 (import ./suites-file {
@@ -11,6 +12,7 @@
     pkgs
     home-manager
     impermanence
+    sopsNix
     zenBrowser
     ;
 })
@@ -19,6 +21,7 @@
     pkgs
     home-manager
     impermanence
+    sopsNix
     zenBrowser
     ;
 })
@@ -27,6 +30,7 @@
     pkgs
     home-manager
     impermanence
+    sopsNix
     zenBrowser
     ;
 })

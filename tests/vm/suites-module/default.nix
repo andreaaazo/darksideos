@@ -3,6 +3,7 @@
   pkgs,
   home-manager,
   impermanence,
+  sopsNix,
   zenBrowser,
 }: let
   vmLib = import ../lib {
@@ -10,6 +11,7 @@
       pkgs
       home-manager
       impermanence
+      sopsNix
       zenBrowser
       ;
   };

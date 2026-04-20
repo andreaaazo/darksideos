@@ -3,6 +3,7 @@
   pkgs,
   home-manager,
   impermanence,
+  sopsNix,
   zenBrowser,
 }: {
   name,
@@ -29,7 +30,10 @@ in
 
     nodes.machine = {...}: {
       imports =
-        [baseModule]
+        [
+          baseModule
+          sopsNix.nixosModules.sops
+        ]
         ++ pkgs.lib.optionals includeHomeManager [home-manager.nixosModules.home-manager]
         ++ pkgs.lib.optionals includeImpermanence [impermanence.nixosModules.impermanence]
         ++ nodeModules;

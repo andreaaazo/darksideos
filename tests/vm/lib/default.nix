@@ -3,6 +3,7 @@
   pkgs,
   home-manager,
   impermanence,
+  sopsNix,
   zenBrowser,
 }: {
   inherit pkgs;
@@ -14,6 +15,7 @@
       pkgs
       home-manager
       impermanence
+      sopsNix
       zenBrowser
       ;
   };
