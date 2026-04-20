@@ -5,6 +5,7 @@
   nixpkgs,
   home-manager,
   impermanence,
+  sopsNix,
   zenBrowser,
 }: let
   testLib = import ../lib {
@@ -14,6 +15,7 @@
       nixpkgs
       home-manager
       impermanence
+      sopsNix
       zenBrowser
       ;
   };

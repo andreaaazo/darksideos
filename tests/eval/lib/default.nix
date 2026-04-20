@@ -6,6 +6,7 @@
   nixpkgs,
   home-manager,
   impermanence,
+  sopsNix,
   zenBrowser,
 }: let
   eval = import ./eval.nix {
@@ -13,13 +14,14 @@
       nixpkgs
       home-manager
       impermanence
+      sopsNix
       zenBrowser
       ;
   };
   assertions = import ./assertions.nix {inherit lib;};
 in {
   inherit pkgs;
-  inherit (eval) evalSharedModule getConfig hmModule impermanenceModule;
+  inherit (eval) evalSharedModule getConfig hmModule impermanenceModule sopsModule;
   inherit
     (assertions)
     mkResult

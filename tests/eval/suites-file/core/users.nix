@@ -127,7 +127,7 @@
 
     (testLib.assertString {
       id = "users-009";
-      name = "andrea password from persist volume";
+      name = "andrea password from runtime sops secret path";
       inherit config;
       path = [
         "users"
@@ -135,9 +135,9 @@
         "andrea"
         "hashedPasswordFile"
       ];
-      expected = "/persist/secrets/pc-password";
+      expected = "/run/secrets-for-users/pc-password";
       severity = "high";
-      rationale = "Password hash stored on persistent volume for impermanence";
+      rationale = "sops-nix must provide password hash at users activation time via neededForUsers runtime path";
     })
 
     (testLib.assertEqual {
