@@ -153,7 +153,7 @@ Official minimal live ISO already includes base CLI tools like `git`, `curl`, an
 
 1. USB: NixOS installer ISO.
 2. Network access.
-3. Repo URL: `https://github.com/andreaaazo/darksideos.git`.
+3. Repo URL: `git@github.com:andreaaazo/darksideos.git`.
 4. Hostname already added in `flake.nix`.
 
 ### 3. Boot and connect to internet
@@ -177,17 +177,35 @@ Official minimal live ISO already includes base CLI tools like `git`, `curl`, an
    exit
    ```
 
-### 4. Clone the repository (temporary work directory)
+### 4. Configure temporary SSH access (live session only)
+
+Use your existing SSH key from USB (or other secure media) only for this installer session:
+
+```bash
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+cp /path/to/your/id_ed25519 ~/.ssh/id_ed25519
+chmod 600 ~/.ssh/id_ed25519
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+chmod 644 ~/.ssh/known_hosts
+ssh -T git@github.com
+```
+
+The live environment is ephemeral, so this SSH setup is temporary by default.
+
+### 5. Clone the repository (temporary work directory)
 
 Clone in `/tmp` to edit placeholders before disk provisioning:
 
 ```bash
 cd /tmp
-git clone https://github.com/andreaaazo/darksideos.git
+git clone git@github.com:andreaaazo/darksideos.git
 cd darksideos
 ```
 
-### 5. Replace disk placeholders and apply disk layout
+### 6. Replace disk placeholders and apply disk layout
 
 1. Replace disk placeholder with real disk id:
    ```bash
@@ -206,20 +224,20 @@ cd darksideos
    cp /tmp/hw/hardware-configuration.nix hosts/<hostname>/hardware-configuration.nix
    ```
 
-### 6. Move the repository to persistent `/etc/nixos`
+### 7. Move the repository to persistent `/persist/etc/nixos`
 
 After Disko, `/mnt` is mounted.  
 Copy your repo there so it remains after reboot.
 
 ```bash
-sudo mkdir -p /mnt/etc
-sudo cp -a /tmp/darksideos /mnt/etc/nixos
-cd /mnt/etc/nixos
+sudo mkdir -p /mnt/persist/etc
+sudo cp -a /tmp/darksideos /mnt/persist/etc/nixos
+cd /mnt/persist/etc/nixos
 ```
 
-`/etc/nixos` is persisted by the shared impermanence module, so this Git repo stays available for rebuilds.
+After reboot, this path is available as `/etc/nixos` via impermanence bind mount.
 
-### 7. Replace secrets placeholders (during installation)
+### 8. Replace secrets placeholders (during installation)
 
 1. Open tool shell only now (needed for secrets commands):
    ```bash
@@ -247,15 +265,15 @@ cd /mnt/etc/nixos
    sudo install -m 0600 /tmp/host-age-key.txt /mnt/persist/secrets/age/keys.txt
    ```
 
-### 8. Install system
+### 9. Install system
 
 1. Install:
    ```bash
-   sudo nixos-install --flake /mnt/etc/nixos#<hostname>
+   sudo nixos-install --flake /mnt/persist/etc/nixos#<hostname>
    ```
 2. Reboot.
 
-### 9. After first boot
+### 10. After first boot
 
 1. Rebuild from the persistent repo path:
    ```bash
