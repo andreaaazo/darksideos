@@ -25,7 +25,7 @@ Select the areas affected by this pull request.
 - [ ] Host: `starkiller`
 - [ ] Host: `vader`
 - [ ] Shared Module: `core/`
-- [ ] Shared Module: `graphical/`
+- [ ] Shared Module: `graphics/`
 - [ ] Shared Module: `hardware/`
 - [ ] Shared Module: `home/`
 - [ ] Shared Module: `impermanence/`

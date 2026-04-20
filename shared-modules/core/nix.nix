@@ -16,6 +16,10 @@
         "nix-command"
         "flakes"
       ];
+      # Build derivations in isolated sandboxes for stronger reproducibility and safety.
+      sandbox = true;
+      # Accept only signed substituter artifacts.
+      require-sigs = true;
       # Automatically hardlinks identical files in /nix/store (saves disk space, especially with many generations)
       auto-optimise-store = true;
       # Parallelism and fail-fast behavior for faster, more predictable local builds.
@@ -25,8 +29,13 @@
       cores = 0;
       # Disable fallback compilation from source when substitutes fail.
       fallback = false;
-      # Allows root and sudo users to push to binary caches and use substituters (required for Cachix CI workflow)
+      # Allows root and sudo users to push to binary caches and use substituters.
       trusted-users = [
+        "root"
+        "@wheel"
+      ];
+      # Restrict daemon usage to privileged users only.
+      allowed-users = [
         "root"
         "@wheel"
       ];
@@ -52,4 +61,9 @@
       dates = "weekly";
     };
   };
+
+  # Disable package suggestion hook to reduce shell overhead and noise.
+  programs.command-not-found.enable = false;
+  # Keep NixOS manual out of shared baseline.
+  documentation.nixos.enable = false;
 }

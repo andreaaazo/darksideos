@@ -114,5 +114,12 @@ vmLib.mkVmTest {
         severity="high",
         rationale="Networking policy should not introduce service failures at boot",
     )
+    assert_command(
+        "vm-net-016",
+        "reverse-path filtering is enabled at runtime",
+        "(sysctl -n net.ipv4.conf.all.rp_filter | grep -E '^[12]$') || (command -v nft >/dev/null && nft list ruleset | grep -Ei 'rpfilter|fib saddr.*drop')",
+        severity="high",
+        rationale="Reverse-path filtering should remain enabled to reduce source-spoofed traffic acceptance",
+    )
   '';
 }

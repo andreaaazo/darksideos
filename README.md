@@ -56,17 +56,18 @@ Validation is organized as a layered pipeline, not a single coarse check. Static
 | Hostname | Role | CPU | GPU |
 |---|---|---|---|
 | `starkiller` | Desktop | Intel | NVIDIA |
-| `vader` | Laptop | AMD | NVIDIA |
+
+`vader` remains a planned host scaffold (currently commented in `flake.nix`).
 
 ## Project Architecture
 
 ```
-hosts/<hostname>/          Host-specific compositor: imports modules, declares overrides
+hosts/<hostname>/          Host-specific composition: imports modules, declares overrides
   default.nix              Entry point — assembles the machine
   disk.nix                 Declarative disk layout (Disko)
   hardware-configuration.nix   Output of nixos-generate-config
 
-shared-modules/            Vertical slices — each module is fully standalone
+shared-modules/            Vertical slices — each module has explicit, minimal responsibilities
   core/                    Boot, locale, networking, nix settings, users
   graphics/                Hyprland, XDG portals, fonts
   hardware/                CPU, GPU, Bluetooth, audio — composable per host
@@ -74,8 +75,8 @@ shared-modules/            Vertical slices — each module is fully standalone
   impermanence/            Persistent state declarations
 ```
 
-Hosts contain **zero logic** — only imports and overrides. All behavior lives in `shared-modules/`.
-Each module is self-contained: no cross-references, no shared variables between modules.
+Hosts are intentionally thin: imports plus host-specific overrides.
+Shared behavior lives primarily in `shared-modules/`, with explicit composition where needed.
 
 ## Stack
 
@@ -85,11 +86,11 @@ Each module is self-contained: no cross-references, no shared variables between 
 | Disk | Disko + LUKS2 + BTRFS | Declarative partitioning, full-disk encryption, snapshots & compression |
 | Filesystem | Impermanence (tmpfs root) | Nothing survives reboot unless explicitly declared |
 | Graphics | Hyprland (Wayland-only, no XWayland) | Tiling compositor, no X11 legacy |
-| Audio | Pipewire + WirePlumber | Replaces PulseAudio/ALSA with unified audio/video daemon |
+| Audio | Pipewire + WirePlumber | ALSA compatibility enabled; Pulse/JACK disabled in shared baseline |
 | User config | Home Manager (NixOS module) | Dotfiles, packages, shell — all declarative |
 | Boot | systemd-boot | UEFI-only, 4 generations, editor disabled |
 | Firewall | nftables | All ports closed by default |
-| CI | GitHub Actions + Cachix | Checks, VM tests, binary cache |
+| CI | GitHub Actions + Determinate cache | Checks, eval tests, VM tests, shared store cache |
 
 ## Shared Modules Detail
 
@@ -97,7 +98,7 @@ Each module is self-contained: no cross-references, no shared variables between 
 - **Boot** — systemd-boot, latest stable kernel, 4 generations retained
 - **Locale** — `en_US.UTF-8` with Swiss-German formats (time, currency, paper), `sg` TTY keymap, `ch/de` XKB layout
 - **Networking** — NetworkManager, hostname from `specialArgs`, nftables firewall (all ports closed)
-- **Nix** — Flakes enabled, store auto-optimized, weekly GC (7d retention), `@wheel` trusted for Cachix
+- **Nix** — Flakes enabled, store auto-optimized, weekly GC (7d retention), `@wheel` in trusted-users
 - **Users** — Immutable users (`mutableUsers = false`), root locked, password hash from runtime secret (`/run/secrets-for-users/pc-password`)
 
 ### `graphics/`
@@ -106,16 +107,16 @@ Each module is self-contained: no cross-references, no shared variables between 
 - **Fonts** — Default packages disabled. JetBrains Mono Nerd Font, Inter, Apple Color Emoji, DIN Next
 
 ### `hardware/`
-- **audio.nix** — PipeWire + WirePlumber, ALSA enabled, PulseAudio daemon disabled, no 32-bit ALSA
+- **audio.nix** — PipeWire + WirePlumber, ALSA enabled, Pulse/JACK disabled, no 32-bit ALSA
 - **cpu-base.nix** — Cross-vendor CPU hardening baseline shared by Intel and AMD modules
 - **cpu-amd.nix** — Microcode updates, redistributable firmware, `kvm-amd` module
 - **cpu-intel.nix** — Microcode updates, redistributable firmware, `kvm-intel` module
-- **gpu-nvidia.nix** — Proprietary driver pinned to kernel, modesetting, VRAM suspend/resume, container toolkit, 32-bit libs
+- **gpu-nvidia.nix** — Open NVIDIA module preferred, modesetting + VRAM suspend/resume enabled, container toolkit disabled, 32-bit stack disabled
 - **bluetooth.nix** — BlueZ enabled, radio off at boot
 
 ### `home/`
 Home Manager integrated as NixOS module. `useGlobalPkgs` avoids double nixpkgs evaluation.
-User modules go in `home/modules/` (shell, git, editor, etc.).
+User modules go in `home/modules/` (desktop/session tools and user-facing apps).
 
 ### `impermanence/`
 Root is tmpfs — wiped every boot. Persisted state:
