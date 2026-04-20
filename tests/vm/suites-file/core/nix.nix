@@ -133,5 +133,47 @@ vmLib.mkVmTest {
         severity="high",
         rationale="Shared Nix policy must not introduce boot-time service failures",
     )
+    assert_command(
+        "vm-nix-018",
+        "sandbox builds are enabled",
+        "grep -E '^sandbox = true$' /etc/nix/nix.conf",
+        severity="high",
+        rationale="Derivations must build in isolated sandboxes",
+    )
+    assert_command(
+        "vm-nix-019",
+        "signed substituters are required",
+        "grep -E '^require-sigs = true$' /etc/nix/nix.conf",
+        severity="critical",
+        rationale="Only signed cache artifacts should be accepted",
+    )
+    assert_command(
+        "vm-nix-020",
+        "root is present in allowed-users",
+        "grep -E '^allowed-users = .*root' /etc/nix/nix.conf",
+        severity="high",
+        rationale="Daemon usage remains explicitly restricted to privileged users",
+    )
+    assert_command(
+        "vm-nix-021",
+        "wheel is present in allowed-users",
+        "grep -E '^allowed-users = .*@wheel' /etc/nix/nix.conf",
+        severity="high",
+        rationale="Wheel users are explicitly permitted daemon access",
+    )
+    assert_command(
+        "vm-nix-022",
+        "command-not-found binary is not present",
+        "! command -v command-not-found >/dev/null",
+        severity="medium",
+        rationale="Shell command suggestion hook stays disabled in shared baseline",
+    )
+    assert_command(
+        "vm-nix-023",
+        "nixos docs payload is not installed in system profile",
+        "test ! -d /run/current-system/sw/share/doc/nixos",
+        severity="medium",
+        rationale="Shared profile keeps NixOS docs disabled to stay lightweight",
+    )
   '';
 }

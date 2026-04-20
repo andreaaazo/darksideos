@@ -27,6 +27,7 @@ vmLib.mkVmTest {
         nvidia.package = lib.mkForce pkgs.glibc;
       };
     })
+    ../fixtures/sops/module.nix
     ../../../shared-modules/core
     ../../../shared-modules/graphics
     ../../../shared-modules/hardware/audio.nix
@@ -116,6 +117,13 @@ vmLib.mkVmTest {
         "test \"$(systemctl list-units --failed --plain --no-legend --all | wc -l)\" -eq 0",
         severity="critical",
         rationale="Full integrated shared stack should converge without failed services",
+    )
+    assert_command(
+        "vm-stack-shared-012",
+        "/etc/nixos mount unit maps to /persist source",
+        "test -f /etc/systemd/system/etc-nixos.mount && grep -Fx 'What=/persist/etc/nixos' /etc/systemd/system/etc-nixos.mount >/dev/null && grep -Fx 'Where=/etc/nixos' /etc/systemd/system/etc-nixos.mount >/dev/null",
+        severity="high",
+        rationale="Integrated stack should preserve flake source tree path across reboots on tmpfs root",
     )
   '';
 }

@@ -106,7 +106,7 @@
       ];
       element = "@wheel";
       severity = "high";
-      rationale = "Allows sudo users to use Cachix";
+      rationale = "Allows sudo users to use configured binary caches";
     })
 
     (testLib.assertEnabled {
@@ -214,6 +214,86 @@
       ];
       severity = "high";
       rationale = "Avoids unexpected local source builds when substitutes are unavailable";
+    })
+
+    (testLib.assertEnabled {
+      id = "nix-016";
+      name = "sandbox builds enabled";
+      inherit config;
+      path = [
+        "nix"
+        "settings"
+        "sandbox"
+      ];
+      severity = "high";
+      rationale = "Build isolation improves reproducibility and safety";
+    })
+
+    (testLib.assertEnabled {
+      id = "nix-017";
+      name = "signed substituters required";
+      inherit config;
+      path = [
+        "nix"
+        "settings"
+        "require-sigs"
+      ];
+      severity = "critical";
+      rationale = "Rejects unsigned binary cache artifacts";
+    })
+
+    (testLib.assertContains {
+      id = "nix-018";
+      name = "allowed-users contains root";
+      inherit config;
+      path = [
+        "nix"
+        "settings"
+        "allowed-users"
+      ];
+      element = "root";
+      severity = "high";
+      rationale = "Daemon access is restricted to explicit privileged users";
+    })
+
+    (testLib.assertContains {
+      id = "nix-019";
+      name = "allowed-users contains wheel";
+      inherit config;
+      path = [
+        "nix"
+        "settings"
+        "allowed-users"
+      ];
+      element = "@wheel";
+      severity = "high";
+      rationale = "Wheel users are explicitly permitted to use the Nix daemon";
+    })
+
+    (testLib.assertDisabled {
+      id = "nix-020";
+      name = "command-not-found disabled";
+      inherit config;
+      path = [
+        "programs"
+        "command-not-found"
+        "enable"
+      ];
+      severity = "medium";
+      rationale = "Reduces shell-side package suggestion overhead";
+    })
+
+    (testLib.assertDisabled {
+      id = "nix-021";
+      name = "nixos documentation disabled";
+      inherit config;
+      path = [
+        "documentation"
+        "nixos"
+        "enable"
+      ];
+      severity = "medium";
+      rationale = "Keeps shared baseline lightweight";
     })
   ];
 in

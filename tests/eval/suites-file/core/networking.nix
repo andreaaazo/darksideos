@@ -221,6 +221,20 @@
       severity = "medium";
       rationale = "Improves resilience on paths with MTU blackholes";
     })
+
+    (testLib.assertString {
+      id = "net-016";
+      name = "reverse-path firewall mode is strict";
+      inherit config;
+      path = [
+        "networking"
+        "firewall"
+        "checkReversePath"
+      ];
+      expected = "strict";
+      severity = "high";
+      rationale = "Strict reverse-path checks reduce spoofed-source packet acceptance";
+    })
   ];
 in
   pkgs.runCommand "eval-core-networking" {} (

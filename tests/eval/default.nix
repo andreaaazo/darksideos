@@ -5,6 +5,7 @@
   nixpkgs,
   home-manager,
   impermanence,
+  sopsNix,
   zenBrowser,
 }:
 import ./suites-file {
@@ -14,6 +15,7 @@ import ./suites-file {
     nixpkgs
     home-manager
     impermanence
+    sopsNix
     zenBrowser
     ;
 }
@@ -24,6 +26,7 @@ import ./suites-file {
     nixpkgs
     home-manager
     impermanence
+    sopsNix
     zenBrowser
     ;
 }
@@ -34,6 +37,7 @@ import ./suites-file {
     nixpkgs
     home-manager
     impermanence
+    sopsNix
     zenBrowser
     ;
 }

@@ -46,29 +46,18 @@
       rationale = "Hyprpaper module must configure wallpaper daemon declaratively through Home Manager";
     })
 
-    (testLib.mkResult {
+    (testLib.assertAnyContainsStringified {
       id = "home-hyprpaper-002";
       name = "Hyprpaper package is in andrea profile";
-      passed =
-        builtins.any
-        (drv: pkgs.lib.hasInfix "hyprpaper" (toString drv))
-        (pkgs.lib.attrByPath [
-            "home-manager"
-            "users"
-            "andrea"
-            "home"
-            "packages"
-          ] []
-          config);
-      expected = "home.packages containing hyprpaper";
-      actual = builtins.map toString (pkgs.lib.attrByPath [
-          "home-manager"
-          "users"
-          "andrea"
-          "home"
-          "packages"
-        ] []
-        config);
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "home"
+        "packages"
+      ];
+      substring = "hyprpaper";
       severity = "high";
       rationale = "Standalone hyprpaper module should expose binary in user profile";
     })

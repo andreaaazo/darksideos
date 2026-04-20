@@ -18,29 +18,18 @@
   };
 
   assertions = [
-    (testLib.mkResult {
+    (testLib.assertAnyContainsStringified {
       id = "home-hyprpicker-001";
       name = "Hyprpicker package is in andrea profile";
-      passed =
-        builtins.any
-        (drv: pkgs.lib.hasInfix "hyprpicker" (toString drv))
-        (pkgs.lib.attrByPath [
-            "home-manager"
-            "users"
-            "andrea"
-            "home"
-            "packages"
-          ] []
-          config);
-      expected = "home.packages containing hyprpicker";
-      actual = builtins.map toString (pkgs.lib.attrByPath [
-          "home-manager"
-          "users"
-          "andrea"
-          "home"
-          "packages"
-        ] []
-        config);
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "home"
+        "packages"
+      ];
+      substring = "hyprpicker";
       severity = "high";
       rationale = "Standalone hyprpicker module should materialize color-picker binary in user profile";
     })

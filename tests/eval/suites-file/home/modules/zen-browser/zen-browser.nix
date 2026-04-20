@@ -17,19 +17,6 @@
     ];
   };
 
-  hyprlandBinds =
-    pkgs.lib.attrByPath [
-      "home-manager"
-      "users"
-      "andrea"
-      "wayland"
-      "windowManager"
-      "hyprland"
-      "settings"
-      "bind"
-    ] []
-    config;
-
   defaultHttpApp =
     pkgs.lib.attrByPath [
       "home-manager"
@@ -87,12 +74,24 @@
       rationale = "CLI/browser-aware tools should resolve Zen as default browser from session environment";
     })
 
-    (testLib.mkResult {
+    (testLib.assertAnyContainsAllStringified {
       id = "home-zen-browser-005";
       name = "Zen Browser Wayland keybind is present";
-      passed = builtins.any (bind: pkgs.lib.hasInfix "exec, /nix/store/" bind && pkgs.lib.hasInfix "--ozone-platform=wayland --enable-features=UseOzonePlatform" bind) hyprlandBinds;
-      expected = "bind containing deterministic store executable and Wayland ozone flags";
-      actual = hyprlandBinds;
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "wayland"
+        "windowManager"
+        "hyprland"
+        "settings"
+        "bind"
+      ];
+      substrings = [
+        "exec, /nix/store/"
+        "--ozone-platform=wayland --enable-features=UseOzonePlatform"
+      ];
       severity = "high";
       rationale = "Zen Browser launcher should be deterministic and force native Wayland execution";
     })

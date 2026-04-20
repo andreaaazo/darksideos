@@ -29,10 +29,9 @@
         extraGroups = [
           "wheel" # Grants sudo privileges.
         ];
-        # Reads password hash from a file on the persistent volume
-        # Generate with: nix-shell -p mkpasswd --run 'mkpasswd -m sha-512'
-        # Store the hash in /persist/secrets/pc-password
-        hashedPasswordFile = "/persist/secrets/pc-password";
+        # Reads password hash from runtime secrets path managed by sops-nix.
+        # The secret is decrypted during activation and never stored in the Nix store.
+        hashedPasswordFile = "/run/secrets-for-users/pc-password";
       };
     };
   };

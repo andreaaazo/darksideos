@@ -24,6 +24,11 @@
     ./monitors.nix
   ];
 
+  sops = {
+    # Host-specific encrypted secret bundle tracked in git.
+    defaultSopsFile = ./secrets/starkiller.yaml;
+  };
+
   hardware = {
     nvidia = {
       # Use NVIDIA's open-source kernel module instead of the closed-source blob (required for Ada Lovelace+, better Wayland/suspend support).

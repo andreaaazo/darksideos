@@ -70,7 +70,7 @@ body:
     options:
     - Flake / Inputs
     - Shared Module — core
-    - Shared Module — graphical
+    - Shared Module — graphics
     - Shared Module — hardware
     - Shared Module — home
     - Shared Module — impermanence

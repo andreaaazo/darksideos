@@ -18,29 +18,18 @@
   };
 
   assertions = [
-    (testLib.mkResult {
+    (testLib.assertAnyContainsStringified {
       id = "home-wl-clipboard-001";
       name = "wl-clipboard package is in andrea profile";
-      passed =
-        builtins.any
-        (drv: pkgs.lib.hasInfix "wl-clipboard" (toString drv))
-        (pkgs.lib.attrByPath [
-            "home-manager"
-            "users"
-            "andrea"
-            "home"
-            "packages"
-          ] []
-          config);
-      expected = "home.packages containing wl-clipboard";
-      actual = builtins.map toString (pkgs.lib.attrByPath [
-          "home-manager"
-          "users"
-          "andrea"
-          "home"
-          "packages"
-        ] []
-        config);
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "home"
+        "packages"
+      ];
+      substring = "wl-clipboard";
       severity = "high";
       rationale = "Standalone wl-clipboard module should provide wl-copy/wl-paste tooling";
     })

@@ -45,5 +45,12 @@ vmLib.mkVmTest {
         severity="high",
         rationale="Impermanence integrated module should not introduce startup failures",
     )
+    assert_command(
+        "vm-module-impermanence-006",
+        "/etc/nixos mount unit maps to /persist source",
+        "test -f /etc/systemd/system/etc-nixos.mount && grep -Fx 'What=/persist/etc/nixos' /etc/systemd/system/etc-nixos.mount >/dev/null && grep -Fx 'Where=/etc/nixos' /etc/systemd/system/etc-nixos.mount >/dev/null",
+        severity="high",
+        rationale="Impermanence module should keep /etc/nixos persistent for deterministic rebuild workflow",
+    )
   '';
 }

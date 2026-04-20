@@ -25,6 +25,8 @@
     firewall = {
       # Activates NixOS's nftables-based stateful firewall (blocks all incoming connections by default, allows all outgoing)
       enable = true;
+      # Enforce strict reverse-path filtering to reduce source-spoofing exposure.
+      checkReversePath = "strict";
       # TCP ports open to incoming traffic
       allowedTCPPorts = [];
       # UDP ports open to incoming traffic

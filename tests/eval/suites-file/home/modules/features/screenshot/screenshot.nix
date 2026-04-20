@@ -17,16 +17,6 @@
     ];
   };
 
-  andreaPackages =
-    pkgs.lib.attrByPath [
-      "home-manager"
-      "users"
-      "andrea"
-      "home"
-      "packages"
-    ] []
-    config;
-
   assertions = [
     (testLib.assertContains {
       id = "home-features-screenshot-001";
@@ -47,17 +37,52 @@
       rationale = "Screenshot feature module must expose deterministic capture binding";
     })
 
-    (testLib.mkResult {
+    (testLib.assertAnyContainsStringified {
       id = "home-features-screenshot-002";
-      name = "Screenshot feature brings required packages";
-      passed =
-        builtins.any (drv: pkgs.lib.hasInfix "grim" (toString drv)) andreaPackages
-        && builtins.any (drv: pkgs.lib.hasInfix "slurp" (toString drv)) andreaPackages
-        && builtins.any (drv: pkgs.lib.hasInfix "wl-clipboard" (toString drv)) andreaPackages;
-      expected = "home.packages containing grim, slurp, and wl-clipboard";
-      actual = builtins.map toString andreaPackages;
+      name = "Screenshot feature includes grim package";
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "home"
+        "packages"
+      ];
+      substring = "grim";
       severity = "high";
-      rationale = "Screenshot feature imports grim/slurp/wl-clipboard modules and should materialize their binaries";
+      rationale = "Screenshot feature imports grim module and should materialize binary in user profile";
+    })
+
+    (testLib.assertAnyContainsStringified {
+      id = "home-features-screenshot-003";
+      name = "Screenshot feature includes slurp package";
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "home"
+        "packages"
+      ];
+      substring = "slurp";
+      severity = "high";
+      rationale = "Screenshot feature imports slurp module and should materialize binary in user profile";
+    })
+
+    (testLib.assertAnyContainsStringified {
+      id = "home-features-screenshot-004";
+      name = "Screenshot feature includes wl-clipboard package";
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "home"
+        "packages"
+      ];
+      substring = "wl-clipboard";
+      severity = "high";
+      rationale = "Screenshot feature imports wl-clipboard module and should materialize binary in user profile";
     })
   ];
 in

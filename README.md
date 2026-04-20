@@ -19,6 +19,7 @@ Personal NixOS infrastructure by Andrea Zorzi.
   <a href="#stack">Stack</a> •
   <a href="#shared-modules-detail">Shared Modules Detail</a> •
   <a href="#suggested-disk-layout">Suggested Disk Layout</a> •
+  <a href="#installation">Installation</a> •
   <a href="#developer-guide">Developer Guide</a>
 </p>
 
@@ -55,17 +56,18 @@ Validation is organized as a layered pipeline, not a single coarse check. Static
 | Hostname | Role | CPU | GPU |
 |---|---|---|---|
 | `starkiller` | Desktop | Intel | NVIDIA |
-| `vader` | Laptop | AMD | NVIDIA |
+
+`vader` remains a planned host scaffold (currently commented in `flake.nix`).
 
 ## Project Architecture
 
 ```
-hosts/<hostname>/          Host-specific compositor: imports modules, declares overrides
+hosts/<hostname>/          Host-specific composition: imports modules, declares overrides
   default.nix              Entry point — assembles the machine
   disk.nix                 Declarative disk layout (Disko)
   hardware-configuration.nix   Output of nixos-generate-config
 
-shared-modules/            Vertical slices — each module is fully standalone
+shared-modules/            Vertical slices — each module has explicit, minimal responsibilities
   core/                    Boot, locale, networking, nix settings, users
   graphics/                Hyprland, XDG portals, fonts
   hardware/                CPU, GPU, Bluetooth, audio — composable per host
@@ -73,8 +75,8 @@ shared-modules/            Vertical slices — each module is fully standalone
   impermanence/            Persistent state declarations
 ```
 
-Hosts contain **zero logic** — only imports and overrides. All behavior lives in `shared-modules/`.
-Each module is self-contained: no cross-references, no shared variables between modules.
+Hosts are intentionally thin: imports plus host-specific overrides.
+Shared behavior lives primarily in `shared-modules/`, with explicit composition where needed.
 
 ## Stack
 
@@ -84,11 +86,11 @@ Each module is self-contained: no cross-references, no shared variables between 
 | Disk | Disko + LUKS2 + BTRFS | Declarative partitioning, full-disk encryption, snapshots & compression |
 | Filesystem | Impermanence (tmpfs root) | Nothing survives reboot unless explicitly declared |
 | Graphics | Hyprland (Wayland-only, no XWayland) | Tiling compositor, no X11 legacy |
-| Audio | Pipewire + WirePlumber | Replaces PulseAudio/ALSA with unified audio/video daemon |
+| Audio | Pipewire + WirePlumber | ALSA compatibility enabled; Pulse/JACK disabled in shared baseline |
 | User config | Home Manager (NixOS module) | Dotfiles, packages, shell — all declarative |
 | Boot | systemd-boot | UEFI-only, 4 generations, editor disabled |
 | Firewall | nftables | All ports closed by default |
-| CI | GitHub Actions + Cachix | Checks, VM tests, binary cache |
+| CI | GitHub Actions + Determinate cache | Checks, eval tests, VM tests, shared store cache |
 
 ## Shared Modules Detail
 
@@ -96,8 +98,8 @@ Each module is self-contained: no cross-references, no shared variables between 
 - **Boot** — systemd-boot, latest stable kernel, 4 generations retained
 - **Locale** — `en_US.UTF-8` with Swiss-German formats (time, currency, paper), `sg` TTY keymap, `ch/de` XKB layout
 - **Networking** — NetworkManager, hostname from `specialArgs`, nftables firewall (all ports closed)
-- **Nix** — Flakes enabled, store auto-optimized, weekly GC (7d retention), `@wheel` trusted for Cachix
-- **Users** — Immutable users (`mutableUsers = false`), root locked, password hash from `/persist/secrets/`
+- **Nix** — Flakes enabled, store auto-optimized, weekly GC (7d retention), `@wheel` in trusted-users
+- **Users** — Immutable users (`mutableUsers = false`), root locked, password hash from runtime secret (`/run/secrets-for-users/pc-password`)
 
 ### `graphics/`
 - **Hyprland** — Wayland compositor, XWayland disabled, Polkit enabled, session variables set
@@ -105,22 +107,22 @@ Each module is self-contained: no cross-references, no shared variables between 
 - **Fonts** — Default packages disabled. JetBrains Mono Nerd Font, Inter, Apple Color Emoji, DIN Next
 
 ### `hardware/`
-- **audio.nix** — PipeWire + WirePlumber, ALSA enabled, PulseAudio daemon disabled, no 32-bit ALSA
+- **audio.nix** — PipeWire + WirePlumber, ALSA enabled, Pulse/JACK disabled, no 32-bit ALSA
 - **cpu-base.nix** — Cross-vendor CPU hardening baseline shared by Intel and AMD modules
 - **cpu-amd.nix** — Microcode updates, redistributable firmware, `kvm-amd` module
 - **cpu-intel.nix** — Microcode updates, redistributable firmware, `kvm-intel` module
-- **gpu-nvidia.nix** — Proprietary driver pinned to kernel, modesetting, VRAM suspend/resume, container toolkit, 32-bit libs
+- **gpu-nvidia.nix** — Open NVIDIA module preferred, modesetting + VRAM suspend/resume enabled, container toolkit disabled, 32-bit stack disabled
 - **bluetooth.nix** — BlueZ enabled, radio off at boot
 
 ### `home/`
 Home Manager integrated as NixOS module. `useGlobalPkgs` avoids double nixpkgs evaluation.
-User modules go in `home/modules/` (shell, git, editor, etc.).
+User modules go in `home/modules/` (desktop/session tools and user-facing apps).
 
 ### `impermanence/`
 Root is tmpfs — wiped every boot. Persisted state:
-- `/var/lib/nixos` (UID/GID maps), `/var/lib/NetworkManager`, `/var/lib/bluetooth`
-- `/etc/ssh` (host keys), `/etc/NetworkManager/system-connections`, `/etc/machine-id`
-- `/var/lib/systemd/coredump`, `/var/lib/systemd/timers`
+- `/var/lib/nixos`, `/var/lib/systemd/timers`, `/var/lib/NetworkManager`
+- `/etc/NetworkManager/system-connections`, `/etc/ssh`, `/etc/nixos`
+- `/etc/machine-id`, `/var/lib/systemd/random-seed`
 
 User-level persistence is handled separately in Home Manager.
 
@@ -135,6 +137,166 @@ tmpfs /                     RAM-backed, wiped on boot (50% RAM)
     ├── @log    → /var/log   Logs (zstd, noatime, noexec, nosuid, nodev)
     └── @swap   → /swap      Swapfile 32GB (nodatacow, no compression)
 ```
+
+## Installation
+
+### 1. Download the installer (minimal, no GUI)
+
+Use only the official NixOS download page:  
+`https://nixos.org/download/`
+
+Pick the image named **Minimal ISO** (`x86_64-linux`).  
+Do not use GNOME/KDE graphical ISOs if you want minimum bloat.
+
+Official minimal live ISO already includes base CLI tools like `git`, `curl`, and `vim`.
+
+### 2. What you need
+
+1. USB: NixOS installer ISO.
+2. Network access.
+3. Repo URL: `git@github.com:andreaaazo/darksideos.git`.
+4. Hostname already added in `flake.nix`.
+
+### 3. Boot and connect to internet
+
+1. Boot from installer USB.
+2. Verify link:
+   ```bash
+   ping -c 3 github.com
+   ```
+3. If you are on Wi-Fi, connect with:
+   ```bash
+   nmtui
+   ```
+   Fallback:
+   ```bash
+   iwctl
+   device list
+   station wlan0 scan
+   station wlan0 get-networks
+   station wlan0 connect "YOUR_WIFI_NAME"
+   exit
+   ```
+
+### 4. Configure temporary SSH access (live session only)
+
+Use your existing SSH key from USB (or other secure media) only for this installer session:
+
+```bash
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+cp /path/to/your/id_ed25519 ~/.ssh/id_ed25519
+chmod 600 ~/.ssh/id_ed25519
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+chmod 644 ~/.ssh/known_hosts
+ssh -T git@github.com
+```
+
+The live environment is ephemeral, so this SSH setup is temporary by default.
+
+### 5. Clone the repository (temporary work directory)
+
+Clone in `/tmp` to edit placeholders before disk provisioning:
+
+```bash
+cd /tmp
+git clone git@github.com:andreaaazo/darksideos.git
+cd darksideos
+```
+
+### 6. Replace disk placeholders and apply disk layout
+
+1. Replace disk placeholder with real disk id:
+   ```bash
+   ls -la /dev/disk/by-id
+   vim hosts/<hostname>/disk.nix
+   ```
+2. Apply disk layout:
+   ```bash
+   sudo nix --extra-experimental-features "nix-command flakes" \
+     run github:nix-community/disko -- \
+     --mode disko ./hosts/<hostname>/disk.nix
+   ```
+3. Generate real hardware config and replace placeholder:
+   ```bash
+   sudo nixos-generate-config --no-filesystems --dir /tmp/hw
+   cp /tmp/hw/hardware-configuration.nix hosts/<hostname>/hardware-configuration.nix
+   ```
+
+### 7. Move the repository to persistent `/persist/etc/nixos`
+
+After Disko, `/mnt` is mounted.  
+Copy your repo there so it remains after reboot.
+
+```bash
+sudo mkdir -p /mnt/persist/etc
+sudo cp -a /tmp/darksideos /mnt/persist/etc/nixos
+cd /mnt/persist/etc/nixos
+```
+
+After reboot, this path is available as `/etc/nixos` via impermanence bind mount.
+
+### 8. Replace secrets placeholders (during installation)
+
+1. Open tool shell only now (needed for secrets commands):
+   ```bash
+   nix-shell -p age sops mkpasswd
+   ```
+2. Create host private key and print host public key:
+   ```bash
+   age-keygen -o /tmp/host-age-key.txt
+   age-keygen -y /tmp/host-age-key.txt
+   ```
+3. Generate password hash and replace placeholder in host secret file:
+   ```bash
+   mkpasswd -m sha-512
+   vim hosts/<hostname>/secrets/<hostname>.yaml
+   ```
+4. Encrypt host secret file:
+   ```bash
+   sops --encrypt --in-place \
+     --age "age1<HOST_PUBLIC_KEY_FROM_PREVIOUS_COMMAND>" \
+     hosts/<hostname>/secrets/<hostname>.yaml
+   ```
+5. Copy private age key into target root:
+   ```bash
+   sudo install -d -m 0700 /mnt/persist/secrets/age
+   sudo install -m 0600 /tmp/host-age-key.txt /mnt/persist/secrets/age/keys.txt
+   ```
+
+### 9. Install system
+
+1. Install:
+   ```bash
+   sudo nixos-install --flake /mnt/persist/etc/nixos#<hostname>
+   ```
+2. Reboot.
+
+### 10. After first boot
+
+1. Rebuild from the persistent repo path:
+   ```bash
+   sudo nixos-rebuild switch --flake /etc/nixos#<hostname>
+   ```
+2. Backup private key to USB:
+   ```bash
+   sudo mkdir -p /mnt/usb
+   sudo mount /dev/disk/by-label/<SECRETS_USB_LABEL> /mnt/usb
+   sudo install -m 0600 /persist/secrets/age/keys.txt /mnt/usb/keys.txt
+   ```
+3. Optional: print host public key and add extra recipients later:
+   ```bash
+   sudo age-keygen -y /persist/secrets/age/keys.txt
+   ```
+
+### Secrets rules
+
+- Git must contain encrypted SOPS files only.
+- Never commit `keys.txt` private key.
+- Keep private key backup offline (USB vault, encrypted backup media).
+- Lose key = cannot decrypt secrets encrypted for that key.
 
 ## Developer Guide
 
@@ -207,6 +369,9 @@ VM_SCOPE=full VM_SHOW_NIXOS_LOGS=false just check-vm
 # Single file-level VM test
 VM_SCOPE=file VM_TARGET=vm-core-nix VM_SHOW_NIXOS_LOGS=true just check-vm
 
+# Targeted secrets runtime test
+VM_SCOPE=file VM_TARGET=vm-core-secrets VM_SHOW_NIXOS_LOGS=false just check-vm
+
 # Single module VM dump (all vm-home-* + vm-module-home)
 VM_SCOPE=module VM_TARGET=home VM_SHOW_NIXOS_LOGS=false just check-vm
 ```
@@ -237,6 +402,7 @@ Authoring rules:
 4. Reuse helpers, do not reimplement harnesses:
    - Eval: `testLib.getConfig`, `testLib.assert*`, `testLib.mkCheckScript`
    - VM: `vmLib.mkVmTest`, `${vmLib.assertions.common}`, `assert_command(...)`
+5. Keep test-only boot/runtime helpers inside test modules only. Example: `vm-core-secrets` uses an initrd fixture service (`vmSopsFixtureKey`) only to inject deterministic test key material; do not copy that service into shared host modules.
 
 Quick templates:
 
@@ -280,14 +446,18 @@ vmLib.mkVmTest {
 }
 ```
 
-### Adding a New Machine
+### Adding a New Host
+
+This section is repo structure only.  
+Use placeholders here.  
+Real values go in the Installation flow.
 
 1. **Create host directory**
    ```
    hosts/<hostname>/
-     default.nix # Entry-Point (override variables here)
-     disk.nix # Disk Setup
-     hardware-configuration.nix # NixOS auto-generated file
+      default.nix # Entry-Point (override variables here)
+      disk.nix # Disk Setup
+      hardware-configuration.nix # NixOS auto-generated file
    ```
 
 2. **Register in `flake.nix`**
@@ -304,36 +474,72 @@ vmLib.mkVmTest {
    };
    ```
 
-3. **`default.nix`** — Import the shared modules you need and add host-specific overrides:
+3. **`default.nix` imports**
    ```nix
    { pkgs, ... }:
    {
       imports = [
         ./disk.nix
         ./hardware-configuration.nix
+        # Directory imports with default.nix
         ../../shared-modules/core
         ../../shared-modules/graphics
+        ../../shared-modules/impermanence
+        ../../shared-modules/home
+
+        # Hardware has NO default.nix: import single files
         ../../shared-modules/hardware/cpu-intel.nix  # or cpu-amd.nix
         ../../shared-modules/hardware/gpu-nvidia.nix
         ../../shared-modules/hardware/bluetooth.nix
         ../../shared-modules/hardware/audio.nix
-        ../../shared-modules/impermanence
-        ../../shared-modules/home
       ];
 
-     # Host-specific overrides here
-   }
+      # Host-specific overrides here
+    }
+   ```
+   Rules:
+   - Do not import `../../shared-modules/hardware` (no `default.nix`).
+   - Do not import `cpu-base.nix` directly.
+   - `cpu-intel.nix` and `cpu-amd.nix` already include the shared CPU base.
+
+4. **`disk.nix` placeholder**
+
+   Put a clear placeholder for disk by-id.
+   Example:
+   ```nix
+   # REPLACE_DURING_INSTALL: /dev/disk/by-id/<REAL_DISK_ID>
+   disk = "/dev/disk/by-id/REPLACE_DURING_INSTALL";
    ```
 
-4. **`disk.nix`** — Define partitions via Disko. Find your disk ID with `ls -la /dev/disk/by-id/`
+5. **`hardware-configuration.nix` placeholder**
 
-5. **`hardware-configuration.nix`** — After first boot, populate with:
+   Create file now.
+   Keep placeholder content now.
+   Replace with real generated content during Installation.
+   ```nix
+   # REPLACE_DURING_INSTALL
+   { ... }: {}
+   ```
+
+6. **Secrets bootstrap placeholder**
+
+   Add host secret file and path now.  
+   Keep placeholder in git.
+
+   `default.nix`:
+   ```nix
+   sops.defaultSopsFile = ./secrets/<hostname>.yaml;
+   ```
+
+   Secret file:
    ```bash
-   sudo nixos-generate-config --no-filesystems --dir /tmp/hw
-   # Copy /tmp/hw/hardware-configuration.nix content here
+   mkdir -p hosts/<hostname>/secrets
+   cat > hosts/<hostname>/secrets/<hostname>.yaml <<'EOF'
+   pc-password: PLACEHOLDER_REPLACE_DURING_INSTALL
+   EOF
    ```
 
-6. **Password** — Generate and store on persistent volume:
-   ```bash
-   nix-shell -p mkpasswd --run 'mkpasswd -m sha-512' > /persist/secrets/pc-password
-   ```
+7. **Commit host structure**
+
+   Commit only structure + placeholders.  
+   Do not commit real private keys.

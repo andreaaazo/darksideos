@@ -18,29 +18,18 @@
   };
 
   assertions = [
-    (testLib.mkResult {
+    (testLib.assertAnyContainsStringified {
       id = "home-kitty-001";
       name = "Kitty package is in andrea profile";
-      passed =
-        builtins.any
-        (drv: pkgs.lib.hasInfix "kitty" (toString drv))
-        (pkgs.lib.attrByPath [
-            "home-manager"
-            "users"
-            "andrea"
-            "home"
-            "packages"
-          ] []
-          config);
-      expected = "home.packages containing kitty";
-      actual = builtins.map toString (pkgs.lib.attrByPath [
-          "home-manager"
-          "users"
-          "andrea"
-          "home"
-          "packages"
-        ] []
-        config);
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "home"
+        "packages"
+      ];
+      substring = "kitty";
       severity = "high";
       rationale = "Standalone kitty module should materialize terminal binary in user profile";
     })

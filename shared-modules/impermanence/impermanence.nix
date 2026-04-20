@@ -25,6 +25,8 @@
       "/etc/NetworkManager/system-connections"
       # SSH host keys (if these change every boot, clients see a MITM warning and refuse to connect).
       "/etc/ssh"
+      # Persist the flake source tree at /etc/nixos so rebuild inputs survive tmpfs root reboots.
+      "/etc/nixos"
       # Optional host opt-ins (disabled in shared minimal baseline):
       # "/var/lib/bluetooth"
       # "/var/lib/systemd/coredump"

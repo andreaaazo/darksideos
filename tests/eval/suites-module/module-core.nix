@@ -42,6 +42,15 @@
       severity = "critical";
       rationale = "Root password login must stay disabled.";
     })
+    (testLib.assertString {
+      id = "module-core-005";
+      name = "sops age key path is persistent";
+      inherit config;
+      path = ["sops" "age" "keyFile"];
+      expected = "/persist/secrets/age/keys.txt";
+      severity = "critical";
+      rationale = "Core integration must keep persistent host decryption identity path.";
+    })
   ];
 in
   pkgs.runCommand "eval-module-core" {} (

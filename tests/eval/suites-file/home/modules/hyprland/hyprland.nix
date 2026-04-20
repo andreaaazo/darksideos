@@ -31,20 +31,6 @@
     ] ""
     config;
 
-  hyprpaperWantedBy =
-    pkgs.lib.attrByPath [
-      "home-manager"
-      "users"
-      "andrea"
-      "systemd"
-      "user"
-      "services"
-      "hyprpaper"
-      "Install"
-      "WantedBy"
-    ] []
-    config;
-
   hyprpaperPlaceholderPath = ../../../../../../shared-modules/home/modules/hyprpaper/wallpaper/wallpaper.jpg;
 
   assertions = [
@@ -183,12 +169,22 @@
       rationale = "Hyprpaper startup must be fully declarative and reproducible";
     })
 
-    (testLib.mkResult {
+    (testLib.assertAnyHasSuffixStringified {
       id = "home-hyprland-009";
       name = "Hyprpaper service is wired to a user session target";
-      passed = builtins.any (target: pkgs.lib.hasSuffix "session.target" target) hyprpaperWantedBy;
-      expected = "WantedBy containing a *session.target value";
-      actual = hyprpaperWantedBy;
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "systemd"
+        "user"
+        "services"
+        "hyprpaper"
+        "Install"
+        "WantedBy"
+      ];
+      suffix = "session.target";
       severity = "medium";
       rationale = "Wallpaper daemon must be started by systemd user session target";
     })
@@ -250,29 +246,18 @@
       rationale = "Wallpaper asset placeholder must be materialized declaratively";
     })
 
-    (testLib.mkResult {
+    (testLib.assertAnyContainsStringified {
       id = "home-hyprland-014";
       name = "Hyprpaper binary is included in user package profile";
-      passed =
-        builtins.any
-        (drv: pkgs.lib.hasInfix "hyprpaper" (toString drv))
-        (pkgs.lib.attrByPath [
-            "home-manager"
-            "users"
-            "andrea"
-            "home"
-            "packages"
-          ] []
-          config);
-      expected = "home.packages containing hyprpaper";
-      actual = builtins.map toString (pkgs.lib.attrByPath [
-          "home-manager"
-          "users"
-          "andrea"
-          "home"
-          "packages"
-        ] []
-        config);
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "home"
+        "packages"
+      ];
+      substring = "hyprpaper";
       severity = "high";
       rationale = "Standalone app module should expose hyprpaper binary in user profile";
     })

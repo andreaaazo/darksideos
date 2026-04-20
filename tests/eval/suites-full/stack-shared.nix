@@ -21,17 +21,7 @@
     ];
   };
 
-  enabledSystemServices =
-    builtins.sort builtins.lessThan
-    (builtins.filter
-      (name: let
-        svc = config.systemd.services.${name};
-      in
-        (builtins.length (svc.wantedBy or []))
-        > 0
-        || (builtins.length (svc.requiredBy or [])) > 0
-        || (builtins.length (svc.upheldBy or [])) > 0)
-      (builtins.attrNames config.systemd.services));
+  enabledSystemServices = testLib.getEnabledSystemServices config;
 
   requiredEnabledSystemServices = [
     "NetworkManager"
@@ -52,32 +42,9 @@
     "avahi-daemon"
   ];
 
-  missingRequiredServices =
-    builtins.filter (serviceName: !(builtins.elem serviceName enabledSystemServices))
-    requiredEnabledSystemServices;
+  missingRequiredServices = pkgs.lib.subtractLists enabledSystemServices requiredEnabledSystemServices;
 
-  enabledForbiddenServices =
-    builtins.filter (serviceName: builtins.elem serviceName enabledSystemServices)
-    forbiddenEnabledSystemServices;
-
-  assertServiceAbsent = {
-    id,
-    name,
-    serviceName,
-    severity ? "high",
-    rationale ? "",
-  }:
-    testLib.mkResult {
-      inherit
-        id
-        name
-        severity
-        rationale
-        ;
-      passed = !(builtins.elem serviceName enabledSystemServices);
-      expected = "service not enabled in full-stack baseline";
-      actual = enabledSystemServices;
-    };
+  enabledForbiddenServices = pkgs.lib.intersectLists forbiddenEnabledSystemServices enabledSystemServices;
 
   assertions = [
     (testLib.assertEnabled {
@@ -282,26 +249,32 @@
       rationale = "Full-stack baseline should deny common non-essential daemons by default";
     })
 
-    (assertServiceAbsent {
+    (testLib.mkResult {
       id = "stack-016";
       name = "printing service not enabled";
-      serviceName = "cups";
+      passed = !(builtins.elem "cups" enabledSystemServices);
+      expected = "service not enabled in full-stack baseline";
+      actual = enabledSystemServices;
       severity = "medium";
       rationale = "Printing stack should remain excluded from minimal baseline";
     })
 
-    (assertServiceAbsent {
+    (testLib.mkResult {
       id = "stack-017";
       name = "docker service not enabled";
-      serviceName = "docker";
+      passed = !(builtins.elem "docker" enabledSystemServices);
+      expected = "service not enabled in full-stack baseline";
+      actual = enabledSystemServices;
       severity = "medium";
       rationale = "Container runtime should not be enabled by default in shared baseline";
     })
 
-    (assertServiceAbsent {
+    (testLib.mkResult {
       id = "stack-018";
       name = "avahi service not enabled";
-      serviceName = "avahi-daemon";
+      passed = !(builtins.elem "avahi-daemon" enabledSystemServices);
+      expected = "service not enabled in full-stack baseline";
+      actual = enabledSystemServices;
       severity = "medium";
       rationale = "mDNS stack should stay opt-in to reduce service surface";
     })

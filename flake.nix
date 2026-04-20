@@ -24,6 +24,12 @@
       url = "github:nix-community/impermanence";
     };
 
+    # SOPS-Nix for declarative secret decryption with age at activation/runtime.
+    sopsNix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Zen Browser flake for declarative browser package and Home Manager integration.
     zenBrowser = {
       url = "github:0xc000022070/zen-browser-flake";
@@ -38,6 +44,7 @@
     home-manager,
     disko,
     impermanence,
+    sopsNix,
     zenBrowser,
     ...
   }: let
@@ -53,6 +60,7 @@
     commonModules = [
       disko.nixosModules.disko
       impermanence.nixosModules.impermanence
+      sopsNix.nixosModules.sops
       home-manager.nixosModules.home-manager
     ];
   in {
@@ -72,6 +80,7 @@
         nixpkgs
         home-manager
         impermanence
+        sopsNix
         zenBrowser
         ;
     };
@@ -83,6 +92,7 @@
       inherit
         home-manager
         impermanence
+        sopsNix
         zenBrowser
         ;
     };

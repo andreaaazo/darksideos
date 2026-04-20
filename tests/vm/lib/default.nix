@@ -3,18 +3,24 @@
   pkgs,
   home-manager,
   impermanence,
+  sopsNix,
   zenBrowser,
-}: {
-  inherit pkgs;
-  # Base module injects common _module.args used by shared module tests.
-  baseModule = import ./base-module.nix {inherit zenBrowser;};
-  assertions = import ./assertions.nix;
-  mkVmTest = import ./mk-vm-test.nix {
+}: let
+  vmTestFactory = import ./mk-vm-test.nix {
     inherit
       pkgs
       home-manager
       impermanence
+      sopsNix
       zenBrowser
       ;
   };
+in {
+  inherit pkgs;
+
+  # Shared Python assertions DSL for VM tests.
+  assertions = import ./assertions.nix;
+
+  # VM test factory (host-independent, reusable across suites).
+  mkVmTest = vmTestFactory;
 }
