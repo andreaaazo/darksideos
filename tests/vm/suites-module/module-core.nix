@@ -20,6 +20,7 @@ vmLib.mkVmTest {
         andrea.hashedPasswordFile = lib.mkForce (toString (pkgs.writeText "vm-andrea-password-hash" "!"));
       };
     })
+    ../fixtures/sops/module.nix
     ../../../shared-modules/core
   ];
 
