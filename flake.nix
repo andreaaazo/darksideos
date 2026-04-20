@@ -103,7 +103,6 @@
         specialArgs = {
           hostName = "starkiller";
           stateVersion = "25.11";
-          # Expose zenBrowser input to shared modules that import external Home Manager modules.
           inherit zenBrowser;
         };
         modules =
@@ -113,17 +112,19 @@
           ];
       };
 
-      # vader = nixpkgs.lib.nixosSystem {
-      #   system = linuxSystem;
-      #   specialArgs = {
-      #     hostName = "vader";
-      #     stateVersion = "25.11";
-      #     inherit zenBrowser;
-      #   };
-      #   modules = commonModules ++ [
-      #     ./hosts/vader
-      #   ];
-      # };
+      vader = nixpkgs.lib.nixosSystem {
+        system = linuxSystem;
+        specialArgs = {
+          hostName = "vader";
+          stateVersion = "25.11";
+          inherit zenBrowser;
+        };
+        modules =
+          commonModules
+          ++ [
+            ./hosts/vader
+          ];
+      };
     };
   };
 }

@@ -24,8 +24,14 @@
         Privacy = "device";
         # Do not silently re-pair JustWorks devices.
         JustWorksRepairing = "never";
-        # Enable BlueZ experimental paths (bleeding edge behavior).
+        # Enable BlueZ experimental paths to unlock newer profiles; warning: behavior can change across BlueZ updates.
         Experimental = true;
+        # Force Secure Connections so legacy insecure pairing is rejected.
+        SecureConnections = "only";
+        # Enable kernel-side experimental Bluetooth features; warning: depends on kernel support and may be ignored.
+        KernelExperimental = true;
+        # Periodically refresh discovery cache so stale device metadata is less likely after firmware changes.
+        RefreshDiscovery = true;
       };
       # Auto-enable policy at daemon startup.
       Policy = {
@@ -53,19 +59,111 @@
     };
   };
 
-  # Bluetooth audio quality baseline for PipeWire/WirePlumber.
-  # Applies only when Bluetooth audio is used; no host/device-specific profile here.
-  services.pipewire.wireplumber.extraConfig."51-bluez-audio-quality" = {
-    # BlueZ monitor properties exposed to WirePlumber policy engine.
-    "monitor.bluez.properties" = {
-      # Enable higher-quality SBC mode when supported by both sides.
-      "bluez5.enable-sbc-xq" = true;
-      # Enable mSBC wideband profile for headset-call quality.
-      "bluez5.enable-msbc" = true;
-      # Keep hardware volume synchronization enabled for stable gain control.
-      "bluez5.enable-hw-volume" = true;
-      # Prevent automatic profile switching to low-quality headset mode.
-      "bluez5.autoswitch-profile" = false;
+  # WirePlumber Bluetooth policy override for codec/profile behavior.
+  services.pipewire.wireplumber.extraConfig."51-bluetooth-ultra" = {
+    # WirePlumber global policy settings.
+    "wireplumber.settings" = {
+      # Disable headset auto-switch so audio stays on high-quality profile unless explicitly changed.
+      "bluetooth.autoswitch-to-headset-profile" = false;
     };
+
+    # BlueZ monitor properties consumed by PipeWire/WirePlumber.
+    "monitor.bluez.properties" = {
+      # Enable all relevant classic + LE Audio roles to expose full device capability surface.
+      "bluez5.roles" = [
+        "a2dp_sink"
+        "a2dp_source"
+        "bap_sink"
+        "bap_source"
+        "bap_bcast_sink"
+        "bap_bcast_source"
+        "hsp_hs"
+        "hsp_ag"
+        "hfp_hf"
+        "hfp_ag"
+      ];
+
+      # Keep explicit codec allowlist; unsupported codecs are ignored by backend without breaking startup.
+      "bluez5.codecs" = [
+        "sbc"
+        "sbc_xq"
+        "aac"
+        "aac_eld"
+        "ldac"
+        "aptx"
+        "aptx_hd"
+        "aptx_ll"
+        "aptx_ll_duplex"
+        "faststream"
+        "faststream_duplex"
+        "lc3plus_h3"
+        "opus_05"
+        "opus_05_51"
+        "opus_05_71"
+        "opus_05_duplex"
+        "opus_05_pro"
+        "opus_g"
+        "lc3"
+      ];
+
+      # Enable SBC XQ to allow higher quality where remote device supports it.
+      "bluez5.enable-sbc-xq" = true;
+      # Enable mSBC to improve headset call quality over narrowband CVSD fallback.
+      "bluez5.enable-msbc" = true;
+      # Enable hardware volume sync to avoid software/hardware volume drift between host and headset.
+      "bluez5.enable-hw-volume" = true;
+      # Use native HFP/HSP backend for minimal dependency chain and deterministic behavior.
+      "bluez5.hfphsp-backend" = "native";
+      # Keep dummy AVRCP player enabled for better metadata/control compatibility with some head units.
+      "bluez5.dummy-avrcp-player" = true;
+    };
+
+    # Device match/action rules for BlueZ cards.
+    "monitor.bluez.rules" = [
+      {
+        # Apply rule to every BlueZ card object.
+        matches = [
+          {"device.name" = "~bluez_card.*";}
+        ];
+        actions = {
+          # Update runtime properties on matched cards.
+          "update-props" = {
+            # Define preferred auto-connect profile order for call/media plus LE Audio paths.
+            "bluez5.auto-connect" = [
+              "hfp_hf"
+              "hsp_hs"
+              "a2dp_sink"
+              "hfp_ag"
+              "hsp_ag"
+              "a2dp_source"
+              "bap_sink"
+              "bap_source"
+            ];
+
+            # Enable hardware-volume mapping on all relevant profile families.
+            "bluez5.hw-volume" = [
+              "hfp_hf"
+              "hsp_hs"
+              "a2dp_sink"
+              "hfp_ag"
+              "hsp_ag"
+              "a2dp_source"
+              "bap_sink"
+              "bap_source"
+            ];
+
+            # Prefer highest LDAC quality mode; warning: can increase RF bandwidth and power usage.
+            "bluez5.a2dp.ldac.quality" = "hq";
+            # Use AAC bitrate mode 5 for quality-first tuning where peer supports it.
+            "bluez5.a2dp.aac.bitratemode" = 5;
+
+            # Keep Opus profile tuned for music quality instead of voice-low-latency tuning.
+            "bluez5.a2dp.opus.pro.application" = "audio";
+            # Keep bidirectional Opus profile in audio mode for consistency with playback-focused policy.
+            "bluez5.a2dp.opus.pro.bidi.application" = "audio";
+          };
+        };
+      }
+    ];
   };
 }

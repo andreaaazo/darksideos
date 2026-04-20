@@ -56,8 +56,7 @@ Validation is organized as a layered pipeline, not a single coarse check. Static
 | Hostname | Role | CPU | GPU |
 |---|---|---|---|
 | `starkiller` | Desktop | Intel | NVIDIA |
-
-`vader` remains a planned host scaffold (currently commented in `flake.nix`).
+| `vader` | Laptop | AMD | NVIDIA |
 
 ## Project Architecture
 
