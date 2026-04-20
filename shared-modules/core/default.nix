@@ -11,6 +11,7 @@
     ./locale.nix
     ./networking.nix
     ./nix.nix
+    ./secrets.nix
     ./users.nix
   ];
 
