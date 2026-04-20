@@ -19,6 +19,7 @@ Personal NixOS infrastructure by Andrea Zorzi.
   <a href="#stack">Stack</a> •
   <a href="#shared-modules-detail">Shared Modules Detail</a> •
   <a href="#suggested-disk-layout">Suggested Disk Layout</a> •
+  <a href="#installation">Installation</a> •
   <a href="#developer-guide">Developer Guide</a>
 </p>
 
@@ -97,7 +98,7 @@ Each module is self-contained: no cross-references, no shared variables between 
 - **Locale** — `en_US.UTF-8` with Swiss-German formats (time, currency, paper), `sg` TTY keymap, `ch/de` XKB layout
 - **Networking** — NetworkManager, hostname from `specialArgs`, nftables firewall (all ports closed)
 - **Nix** — Flakes enabled, store auto-optimized, weekly GC (7d retention), `@wheel` trusted for Cachix
-- **Users** — Immutable users (`mutableUsers = false`), root locked, password hash from `/persist/secrets/`
+- **Users** — Immutable users (`mutableUsers = false`), root locked, password hash from runtime secret (`/run/secrets-for-users/pc-password`)
 
 ### `graphics/`
 - **Hyprland** — Wayland compositor, XWayland disabled, Polkit enabled, session variables set
@@ -135,6 +136,54 @@ tmpfs /                     RAM-backed, wiped on boot (50% RAM)
     ├── @log    → /var/log   Logs (zstd, noatime, noexec, nosuid, nodev)
     └── @swap   → /swap      Swapfile 32GB (nodatacow, no compression)
 ```
+
+## Installation
+
+### Secrets and credentials model (`sops-nix` + `age`)
+
+- Shared implementation lives in `shared-modules/core/secrets.nix` and is mandatory for hosts importing `shared-modules/core`.
+- Each host defines only `sops.defaultSopsFile` in `hosts/<hostname>/default.nix`.
+- `sops.age.generateKey = true` bootstraps the private key automatically on first activation at:
+  - `/persist/secrets/age/keys.txt`
+- User password hash is read from:
+  - `/run/secrets-for-users/pc-password`
+
+### First secure bring-up flow
+
+1. Keep a host secret file in the repo:
+   - `hosts/<hostname>/secrets/<hostname>.yaml`
+   - Bootstrap placeholder can be:
+     ```yaml
+     pc-password: example
+     ```
+   - Replace the placeholder with a real SHA-512 hash before regular use.
+2. Bootstrap once (first activation/rebuild) to generate host age key.
+3. Read host age public key:
+   ```bash
+   sudo age-keygen -y /persist/secrets/age/keys.txt
+   ```
+4. Generate password hash:
+   ```bash
+   nix-shell -p mkpasswd --run 'mkpasswd -m sha-512'
+   ```
+5. Put the hash under key `pc-password` and encrypt the host secret file:
+   ```bash
+   sops --encrypt --in-place \
+     --age "age1<host-public-key>" \
+     --age "age1<admin-public-key>" \
+     hosts/<hostname>/secrets/<hostname>.yaml
+   ```
+6. Apply configuration:
+   ```bash
+   sudo nixos-rebuild switch --flake .#<hostname>
+   ```
+
+### Operational rules
+
+- Commit only encrypted SOPS files to GitHub.
+- Never commit `/persist/secrets/age/keys.txt`.
+- Back up `keys.txt` offline (USB/password manager attachment/HSM workflow).
+- If you lose the private key, you cannot decrypt secrets encrypted only for that host.
 
 ## Developer Guide
 
@@ -207,6 +256,9 @@ VM_SCOPE=full VM_SHOW_NIXOS_LOGS=false just check-vm
 # Single file-level VM test
 VM_SCOPE=file VM_TARGET=vm-core-nix VM_SHOW_NIXOS_LOGS=true just check-vm
 
+# Targeted secrets runtime test
+VM_SCOPE=file VM_TARGET=vm-core-secrets VM_SHOW_NIXOS_LOGS=false just check-vm
+
 # Single module VM dump (all vm-home-* + vm-module-home)
 VM_SCOPE=module VM_TARGET=home VM_SHOW_NIXOS_LOGS=false just check-vm
 ```
@@ -237,6 +289,7 @@ Authoring rules:
 4. Reuse helpers, do not reimplement harnesses:
    - Eval: `testLib.getConfig`, `testLib.assert*`, `testLib.mkCheckScript`
    - VM: `vmLib.mkVmTest`, `${vmLib.assertions.common}`, `assert_command(...)`
+5. Keep test-only boot/runtime helpers inside test modules only. Example: `vm-core-secrets` uses an initrd fixture service (`vmSopsFixtureKey`) only to inject deterministic test key material; do not copy that service into shared host modules.
 
 Quick templates:
 
@@ -280,7 +333,7 @@ vmLib.mkVmTest {
 }
 ```
 
-### Adding a New Machine
+### Adding a New Machine (Repository Composition)
 
 1. **Create host directory**
    ```
@@ -333,7 +386,4 @@ vmLib.mkVmTest {
    # Copy /tmp/hw/hardware-configuration.nix content here
    ```
 
-6. **Password** — Generate and store on persistent volume:
-   ```bash
-   nix-shell -p mkpasswd --run 'mkpasswd -m sha-512' > /persist/secrets/pc-password
-   ```
+Secrets bootstrap, encryption, and key lifecycle are documented in [Installation](#installation).
