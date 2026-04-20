@@ -119,9 +119,9 @@ User modules go in `home/modules/` (shell, git, editor, etc.).
 
 ### `impermanence/`
 Root is tmpfs — wiped every boot. Persisted state:
-- `/var/lib/nixos` (UID/GID maps), `/var/lib/NetworkManager`, `/var/lib/bluetooth`
-- `/etc/ssh` (host keys), `/etc/NetworkManager/system-connections`, `/etc/machine-id`
-- `/var/lib/systemd/coredump`, `/var/lib/systemd/timers`
+- `/var/lib/nixos`, `/var/lib/systemd/timers`, `/var/lib/NetworkManager`
+- `/etc/NetworkManager/system-connections`, `/etc/ssh`, `/etc/nixos`
+- `/etc/machine-id`, `/var/lib/systemd/random-seed`
 
 User-level persistence is handled separately in Home Manager.
 
@@ -139,51 +139,145 @@ tmpfs /                     RAM-backed, wiped on boot (50% RAM)
 
 ## Installation
 
-### Secrets and credentials model (`sops-nix` + `age`)
+### 1. Download the installer (minimal, no GUI)
 
-- Shared implementation lives in `shared-modules/core/secrets.nix` and is mandatory for hosts importing `shared-modules/core`.
-- Each host defines only `sops.defaultSopsFile` in `hosts/<hostname>/default.nix`.
-- `sops.age.generateKey = true` bootstraps the private key automatically on first activation at:
-  - `/persist/secrets/age/keys.txt`
-- User password hash is read from:
-  - `/run/secrets-for-users/pc-password`
+Use only the official NixOS download page:  
+`https://nixos.org/download/`
 
-### First secure bring-up flow
+Pick the image named **Minimal ISO** (`x86_64-linux`).  
+Do not use GNOME/KDE graphical ISOs if you want minimum bloat.
 
-1. Keep a host secret file in the repo:
-   - `hosts/<hostname>/secrets/<hostname>.yaml`
-   - Bootstrap placeholder can be:
-     ```yaml
-     pc-password: example
-     ```
-   - Replace the placeholder with a real SHA-512 hash before regular use.
-2. Bootstrap once (first activation/rebuild) to generate host age key.
-3. Read host age public key:
+Official minimal live ISO already includes base CLI tools like `git`, `curl`, and `vim`.
+
+### 2. What you need
+
+1. USB: NixOS installer ISO.
+2. Network access.
+3. Repo URL: `https://github.com/andreaaazo/darksideos.git`.
+4. Hostname already added in `flake.nix`.
+
+### 3. Boot and connect to internet
+
+1. Boot from installer USB.
+2. Verify link:
+   ```bash
+   ping -c 3 github.com
+   ```
+3. If you are on Wi-Fi, connect with:
+   ```bash
+   nmtui
+   ```
+   Fallback:
+   ```bash
+   iwctl
+   device list
+   station wlan0 scan
+   station wlan0 get-networks
+   station wlan0 connect "YOUR_WIFI_NAME"
+   exit
+   ```
+
+### 4. Clone the repository (temporary work directory)
+
+Clone in `/tmp` to edit placeholders before disk provisioning:
+
+```bash
+cd /tmp
+git clone https://github.com/andreaaazo/darksideos.git
+cd darksideos
+```
+
+### 5. Replace disk placeholders and apply disk layout
+
+1. Replace disk placeholder with real disk id:
+   ```bash
+   ls -la /dev/disk/by-id
+   vim hosts/<hostname>/disk.nix
+   ```
+2. Apply disk layout:
+   ```bash
+   sudo nix --extra-experimental-features "nix-command flakes" \
+     run github:nix-community/disko -- \
+     --mode disko ./hosts/<hostname>/disk.nix
+   ```
+3. Generate real hardware config and replace placeholder:
+   ```bash
+   sudo nixos-generate-config --no-filesystems --dir /tmp/hw
+   cp /tmp/hw/hardware-configuration.nix hosts/<hostname>/hardware-configuration.nix
+   ```
+
+### 6. Move the repository to persistent `/etc/nixos`
+
+After Disko, `/mnt` is mounted.  
+Copy your repo there so it remains after reboot.
+
+```bash
+sudo mkdir -p /mnt/etc
+sudo cp -a /tmp/darksideos /mnt/etc/nixos
+cd /mnt/etc/nixos
+```
+
+`/etc/nixos` is persisted by the shared impermanence module, so this Git repo stays available for rebuilds.
+
+### 7. Replace secrets placeholders (during installation)
+
+1. Open tool shell only now (needed for secrets commands):
+   ```bash
+   nix-shell -p age sops mkpasswd
+   ```
+2. Create host private key and print host public key:
+   ```bash
+   age-keygen -o /tmp/host-age-key.txt
+   age-keygen -y /tmp/host-age-key.txt
+   ```
+3. Generate password hash and replace placeholder in host secret file:
+   ```bash
+   mkpasswd -m sha-512
+   vim hosts/<hostname>/secrets/<hostname>.yaml
+   ```
+4. Encrypt host secret file:
+   ```bash
+   sops --encrypt --in-place \
+     --age "age1<HOST_PUBLIC_KEY_FROM_PREVIOUS_COMMAND>" \
+     hosts/<hostname>/secrets/<hostname>.yaml
+   ```
+5. Copy private age key into target root:
+   ```bash
+   sudo install -d -m 0700 /mnt/persist/secrets/age
+   sudo install -m 0600 /tmp/host-age-key.txt /mnt/persist/secrets/age/keys.txt
+   ```
+
+### 8. Install system
+
+1. Install:
+   ```bash
+   sudo nixos-install --flake /mnt/etc/nixos#<hostname>
+   ```
+2. Reboot.
+
+### 9. After first boot
+
+1. Rebuild from the persistent repo path:
+   ```bash
+   sudo nixos-rebuild switch --flake /etc/nixos#<hostname>
+   ```
+2. Backup private key to USB:
+   ```bash
+   sudo mkdir -p /mnt/usb
+   sudo mount /dev/disk/by-label/<SECRETS_USB_LABEL> /mnt/usb
+   sudo install -m 0600 /persist/secrets/age/keys.txt /mnt/usb/keys.txt
+   ```
+3. Optional: print host public key and add extra recipients later:
    ```bash
    sudo age-keygen -y /persist/secrets/age/keys.txt
    ```
-4. Generate password hash:
-   ```bash
-   nix-shell -p mkpasswd --run 'mkpasswd -m sha-512'
-   ```
-5. Put the hash under key `pc-password` and encrypt the host secret file:
-   ```bash
-   sops --encrypt --in-place \
-     --age "age1<host-public-key>" \
-     --age "age1<admin-public-key>" \
-     hosts/<hostname>/secrets/<hostname>.yaml
-   ```
-6. Apply configuration:
-   ```bash
-   sudo nixos-rebuild switch --flake .#<hostname>
-   ```
 
-### Operational rules
+### Secrets rules
 
-- Commit only encrypted SOPS files to GitHub.
-- Never commit `/persist/secrets/age/keys.txt`.
-- Back up `keys.txt` offline (USB/password manager attachment/HSM workflow).
-- If you lose the private key, you cannot decrypt secrets encrypted only for that host.
+- Git must contain encrypted SOPS files only.
+- Never commit `keys.txt` private key.
+- Keep private key backup offline (USB vault, encrypted backup media).
+- Lose key = cannot decrypt secrets encrypted for that key.
 
 ## Developer Guide
 
@@ -333,14 +427,18 @@ vmLib.mkVmTest {
 }
 ```
 
-### Adding a New Machine (Repository Composition)
+### Adding a New Host
+
+This section is repo structure only.  
+Use placeholders here.  
+Real values go in the Installation flow.
 
 1. **Create host directory**
    ```
    hosts/<hostname>/
-     default.nix # Entry-Point (override variables here)
-     disk.nix # Disk Setup
-     hardware-configuration.nix # NixOS auto-generated file
+      default.nix # Entry-Point (override variables here)
+      disk.nix # Disk Setup
+      hardware-configuration.nix # NixOS auto-generated file
    ```
 
 2. **Register in `flake.nix`**
@@ -357,33 +455,72 @@ vmLib.mkVmTest {
    };
    ```
 
-3. **`default.nix`** — Import the shared modules you need and add host-specific overrides:
+3. **`default.nix` imports**
    ```nix
    { pkgs, ... }:
    {
       imports = [
         ./disk.nix
         ./hardware-configuration.nix
+        # Directory imports with default.nix
         ../../shared-modules/core
         ../../shared-modules/graphics
+        ../../shared-modules/impermanence
+        ../../shared-modules/home
+
+        # Hardware has NO default.nix: import single files
         ../../shared-modules/hardware/cpu-intel.nix  # or cpu-amd.nix
         ../../shared-modules/hardware/gpu-nvidia.nix
         ../../shared-modules/hardware/bluetooth.nix
         ../../shared-modules/hardware/audio.nix
-        ../../shared-modules/impermanence
-        ../../shared-modules/home
       ];
 
-     # Host-specific overrides here
-   }
+      # Host-specific overrides here
+    }
+   ```
+   Rules:
+   - Do not import `../../shared-modules/hardware` (no `default.nix`).
+   - Do not import `cpu-base.nix` directly.
+   - `cpu-intel.nix` and `cpu-amd.nix` already include the shared CPU base.
+
+4. **`disk.nix` placeholder**
+
+   Put a clear placeholder for disk by-id.
+   Example:
+   ```nix
+   # REPLACE_DURING_INSTALL: /dev/disk/by-id/<REAL_DISK_ID>
+   disk = "/dev/disk/by-id/REPLACE_DURING_INSTALL";
    ```
 
-4. **`disk.nix`** — Define partitions via Disko. Find your disk ID with `ls -la /dev/disk/by-id/`
+5. **`hardware-configuration.nix` placeholder**
 
-5. **`hardware-configuration.nix`** — After first boot, populate with:
+   Create file now.
+   Keep placeholder content now.
+   Replace with real generated content during Installation.
+   ```nix
+   # REPLACE_DURING_INSTALL
+   { ... }: {}
+   ```
+
+6. **Secrets bootstrap placeholder**
+
+   Add host secret file and path now.  
+   Keep placeholder in git.
+
+   `default.nix`:
+   ```nix
+   sops.defaultSopsFile = ./secrets/<hostname>.yaml;
+   ```
+
+   Secret file:
    ```bash
-   sudo nixos-generate-config --no-filesystems --dir /tmp/hw
-   # Copy /tmp/hw/hardware-configuration.nix content here
+   mkdir -p hosts/<hostname>/secrets
+   cat > hosts/<hostname>/secrets/<hostname>.yaml <<'EOF'
+   pc-password: PLACEHOLDER_REPLACE_DURING_INSTALL
+   EOF
    ```
 
-Secrets bootstrap, encryption, and key lifecycle are documented in [Installation](#installation).
+7. **Commit host structure**
+
+   Commit only structure + placeholders.  
+   Do not commit real private keys.

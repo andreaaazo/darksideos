@@ -22,11 +22,11 @@
     (testLib.mkResult {
       id = "module-impermanence-002";
       name = "persistence directories count stays minimal";
-      passed = builtins.length persistConfig.directories == 5;
-      expected = 5;
+      passed = builtins.length persistConfig.directories == 6;
+      expected = 6;
       actual = builtins.length persistConfig.directories;
       severity = "critical";
-      rationale = "Impermanence integration should preserve minimal persisted directory surface.";
+      rationale = "Impermanence integration should preserve minimal persisted directory surface including /etc/nixos.";
     })
     (testLib.mkResult {
       id = "module-impermanence-003";

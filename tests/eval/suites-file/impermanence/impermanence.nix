@@ -33,11 +33,11 @@
     (testLib.mkResult {
       id = "impermanence-002";
       name = "Expected minimal directories count";
-      passed = dirCount == 5;
-      expected = 5;
+      passed = dirCount == 6;
+      expected = 6;
       actual = dirCount;
       severity = "critical";
-      rationale = "Minimal baseline keeps only essential system state paths";
+      rationale = "Minimal baseline keeps only essential system state paths plus /etc/nixos source persistence";
     })
 
     (testLib.mkResult {

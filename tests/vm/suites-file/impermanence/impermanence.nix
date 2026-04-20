@@ -60,6 +60,13 @@ vmLib.mkVmTest {
         rationale="SSH host keys must remain stable to avoid client trust breakage",
     )
     assert_command(
+        "vm-imp-016",
+        "/etc/nixos mount unit maps to /persist source",
+        "test -f /etc/systemd/system/etc-nixos.mount && grep -Fx 'What=/persist/etc/nixos' /etc/systemd/system/etc-nixos.mount >/dev/null && grep -Fx 'Where=/etc/nixos' /etc/systemd/system/etc-nixos.mount >/dev/null",
+        severity="critical",
+        rationale="NixOS source tree should persist so flake-based rebuilds survive reboot on tmpfs root",
+    )
+    assert_command(
         "vm-imp-008",
         "/var/lib/systemd/coredump mount unit is not declared in minimal baseline",
         "sh -c 'u=$(systemd-escape --path --suffix=mount /var/lib/systemd/coredump); test ! -f \"/etc/systemd/system/$u\"'",
