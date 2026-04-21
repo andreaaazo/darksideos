@@ -1,4 +1,4 @@
-# Eval tests for shared-modules/home/modules/hyprland/default.nix via home/home.nix entrypoint.
+# Eval tests for shared-modules/home/modules/hyprland/default.nix via home entrypoint.
 # Verifies user-level Hyprland Home Manager policy.
 {
   pkgs,
@@ -7,7 +7,7 @@
   config = testLib.getConfig {
     extraModules = [testLib.hmModule];
     modules = [
-      ../../../../../../shared-modules/home/home.nix
+      ../../../../../../shared-modules/home
       # Stub: define user so home-manager can resolve homeDirectory.
       {
         nixpkgs.config.allowUnfree = true;

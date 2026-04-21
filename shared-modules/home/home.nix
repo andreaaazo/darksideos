@@ -41,12 +41,6 @@
       programs.home-manager.enable = true;
       # Keep shared baseline minimal and avoid generating Home Manager manpages.
       manual.manpages.enable = false;
-
-      # Import user-level module collection.
-      imports = [
-        # Loads user-level modules (shell, git, editor, etc.) from the modules/ subdirectory.
-        ./modules
-      ];
     };
   };
 }

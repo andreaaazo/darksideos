@@ -1,8 +1,8 @@
-# User-level Home Manager modules (shell, git, editor, etc.).
-# Each module is a standalone file imported here.
-{pkgs, ...}: {
-  # Import the shared Home Manager module set for interactive applications and UX features.
+# User-level module collection, wired as a NixOS module so mixed system/HM modules can stay standalone.
+{
+  # Import every Home module as a standalone NixOS wrapper.
   imports = [
+    ./git
     ./hyprland
     ./hyprpaper
     ./grim
@@ -13,10 +13,6 @@
     ./zen-browser
     ./hyprpicker
     ./spotify
-  ];
-
-  home.packages = with pkgs; [
-    vim
-    git
+    ./vim
   ];
 }

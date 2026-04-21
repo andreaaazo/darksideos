@@ -1,4 +1,4 @@
-# Eval tests for shared-modules/home/modules/grim/default.nix via home/home.nix entrypoint.
+# Eval tests for shared-modules/home/modules/grim/default.nix via home entrypoint.
 {
   pkgs,
   testLib,
@@ -6,7 +6,7 @@
   config = testLib.getConfig {
     extraModules = [testLib.hmModule];
     modules = [
-      ../../../../../../shared-modules/home/home.nix
+      ../../../../../../shared-modules/home
       {
         nixpkgs.config.allowUnfree = true;
         users.users.andrea = {

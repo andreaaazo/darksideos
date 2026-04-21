@@ -1,4 +1,4 @@
-# Eval tests for shared-modules/home/modules/wl-clipboard/default.nix via home entrypoint.
+# Eval tests for shared-modules/home/modules/vim/default.nix via home entrypoint.
 {
   pkgs,
   testLib,
@@ -19,8 +19,8 @@
 
   assertions = [
     (testLib.assertAnyContainsStringified {
-      id = "home-wl-clipboard-001";
-      name = "wl-clipboard package is in andrea profile";
+      id = "home-vim-001";
+      name = "Vim package is in andrea profile";
       inherit config;
       path = [
         "home-manager"
@@ -29,15 +29,15 @@
         "home"
         "packages"
       ];
-      substring = "wl-clipboard";
-      severity = "high";
-      rationale = "Standalone wl-clipboard module should provide wl-copy/wl-paste tooling";
+      substring = "vim";
+      severity = "medium";
+      rationale = "Shared Home baseline should keep a minimal terminal editor available";
     })
   ];
 in
-  pkgs.runCommand "eval-home-modules-wl-clipboard" {} (
+  pkgs.runCommand "eval-home-modules-vim" {} (
     testLib.mkCheckScript {
-      name = "home/modules/wl-clipboard";
+      name = "home/modules/vim";
       assertionResults = assertions;
     }
   )

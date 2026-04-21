@@ -1,4 +1,4 @@
 {pkgs, ...}: {
   # Install Slurp utility in the user profile.
-  home.packages = [pkgs.slurp];
+  home-manager.users.andrea.home.packages = [pkgs.slurp];
 }
