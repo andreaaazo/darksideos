@@ -21,7 +21,7 @@
     ../../shared-modules/hardware/gpu-nvidia.nix
 
     # Host-only laptop power policy
-    ./power.nix
+    ./power
 
     # Home
     ../../shared-modules/home

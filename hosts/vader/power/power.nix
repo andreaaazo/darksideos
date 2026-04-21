@@ -7,6 +7,9 @@
 }: let
   acProfile = "Performance";
   batteryProfile = "Quiet";
+  # PRIME IDs must stay eval-valid; verify with `lspci` on vader before first hardware switch.
+  amdgpuBusId = "PCI:6:0:0";
+  nvidiaBusId = "PCI:1:0:0";
 
   # Package the reconciler as an immutable host binary so systemd and manual runs share identical code.
   asusPowerProfile = pkgs.stdenvNoCC.mkDerivation {
@@ -81,9 +84,7 @@ in {
         enableOffloadCmd = true;
       };
 
-      # REPLACE_DURING_INSTALL: get IDs from `lspci` and convert to NixOS PRIME format.
-      amdgpuBusId = "PCI:REPLACE_AMDGPU_BUS_ID";
-      nvidiaBusId = "PCI:REPLACE_NVIDIA_BUS_ID";
+      inherit amdgpuBusId nvidiaBusId;
     };
   };
 
