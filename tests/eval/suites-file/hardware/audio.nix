@@ -302,7 +302,7 @@
         "stream.properties"
         "resample.quality"
       ];
-      expected = 15;
+      expected = 14;
       severity = "high";
       rationale = "Highest resampler quality improves mathematical precision for conversion paths";
     })
