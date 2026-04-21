@@ -110,14 +110,14 @@ vmLib.mkVmTest {
     assert_command(
         "vm-audio-015",
         "pipewire stream normalization is rendered in shared profile",
-        "grep -E '^[[:space:]]*\"?channelmix\\.normalize\"?[[:space:]]*=[[:space:]]*true[,;]?[[:space:]]*$' /etc/pipewire/pipewire.conf.d/95-high-quality-audio.conf >/dev/null",
+        "grep -E '^[[:space:]]*\"?channelmix[.]normalize\"?[[:space:]]*[:=][[:space:]]*true[,;]?[[:space:]]*$' /etc/pipewire/pipewire.conf.d/95-high-quality-audio.conf >/dev/null",
         severity="medium",
         rationale="Shared profile should materialize channel normalization to reduce clipping risk",
     )
     assert_command(
         "vm-audio-016",
         "wireplumber ALSA ACP policy is rendered in shared profile",
-        "sh -eu -c 'f=$(find /etc -type f -path \"*/wireplumber/*95-high-quality-audio.conf\" | head -n1); test -n \"$f\" && grep -E \"^[[:space:]]*alsa.use-acp[[:space:]]*=[[:space:]]*true$\" \"$f\" >/dev/null'",
+        "grep -R -E '\"?alsa[.]use-acp\"?[[:space:]]*[:=][[:space:]]*true' /nix/store/*-95-high-quality-audio.conf/share/wireplumber/wireplumber.conf.d/95-high-quality-audio.conf >/dev/null",
         severity="high",
         rationale="Shared profile should materialize deterministic ALSA profile handling policy",
     )
