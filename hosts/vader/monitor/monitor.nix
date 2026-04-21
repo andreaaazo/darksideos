@@ -10,12 +10,12 @@ in {
     # Host-only Hyprland policy for vader's internal ProArt P16 panel.
     wayland.windowManager.hyprland.settings = {
       monitorv2 = {
-        # Keep panel name explicit; verify with `hyprctl monitors all` if firmware or kernel naming changes.
-        output = "eDP-1";
+        # Empty output is Hyprland's documented fallback rule for every monitor without a more specific match.
+        output = "";
         # Use the panel preferred timing so firmware/native refresh stays source-of-truth.
         mode = "preferred";
-        # Single-panel laptop layout starts at origin to avoid phantom monitor offsets.
-        position = "0x0";
+        # Let Hyprland place matching monitors to avoid overlap when external panels are hotplugged.
+        position = "auto";
         # 3840x2400 at 1.5 gives a deterministic 2560x1600 logical workspace.
         scale = 1.5;
         # Prefer 10-bit scanout path to reduce banding on the OLED panel.
