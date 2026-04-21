@@ -38,4 +38,7 @@
 
   # Keep controller in fast-connectable state to reduce reconnect latency at slight idle power cost.
   hardware.bluetooth.settings.General.FastConnectable = true;
+
+  # Disable Wi-Fi power saving on vader for lower latency and maximum link responsiveness.
+  networking.networkmanager.wifi.powersave = false;
 }
