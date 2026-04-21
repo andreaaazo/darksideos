@@ -42,6 +42,15 @@
       severity = "high";
       rationale = "Graphics integration must keep deterministic portal routing.";
     })
+    (testLib.assertContains {
+      id = "module-graphics-005";
+      name = "serif default is Test Tiempos Text";
+      inherit config;
+      path = ["fonts" "fontconfig" "defaultFonts" "serif"];
+      element = "Test Tiempos Text";
+      severity = "medium";
+      rationale = "Graphics integration must expose the committed serif face as generic serif.";
+    })
   ];
 in
   pkgs.runCommand "eval-module-graphics" {} (

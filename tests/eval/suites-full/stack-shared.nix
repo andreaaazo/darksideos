@@ -336,6 +336,40 @@
       severity = "medium";
       rationale = "Full stack should pass regulatory domain before Wi-Fi userspace starts";
     })
+
+    (testLib.assertContains {
+      id = "stack-023";
+      name = "serif default is Test Tiempos Text";
+      inherit config;
+      path = [
+        "fonts"
+        "fontconfig"
+        "defaultFonts"
+        "serif"
+      ];
+      element = "Test Tiempos Text";
+      severity = "medium";
+      rationale = "Full stack should preserve the committed serif font baseline";
+    })
+
+    (testLib.assertContains {
+      id = "stack-024";
+      name = "hyprland window rules use current syntax";
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "wayland"
+        "windowManager"
+        "hyprland"
+        "settings"
+        "windowrule"
+      ];
+      element = "opacity 0.80 override 0.80 override, match:class ^(spotify)$";
+      severity = "medium";
+      rationale = "Full stack should avoid deprecated Hyprland windowrulev2 syntax";
+    })
   ];
 in
   pkgs.runCommand "eval-stack-shared" {} (

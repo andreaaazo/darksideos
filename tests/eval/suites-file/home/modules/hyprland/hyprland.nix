@@ -261,6 +261,79 @@
       severity = "high";
       rationale = "Standalone app module should expose hyprpaper binary in user profile";
     })
+
+    (testLib.assertContains {
+      id = "home-hyprland-015";
+      name = "Hyprland Spotify rule uses current windowrule syntax";
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "wayland"
+        "windowManager"
+        "hyprland"
+        "settings"
+        "windowrule"
+      ];
+      element = "opacity 0.80 override 0.80 override, match:class ^(spotify)$";
+      severity = "high";
+      rationale = "Hyprland 2026 rules must use windowrule with explicit match:class syntax";
+    })
+
+    (testLib.assertContains {
+      id = "home-hyprland-016";
+      name = "Hyprland fullscreen shadow rule uses no_shadow";
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "wayland"
+        "windowManager"
+        "hyprland"
+        "settings"
+        "windowrule"
+      ];
+      element = "no_shadow on, match:fullscreen true";
+      severity = "medium";
+      rationale = "Fullscreen rule should use the current no_shadow effect spelling";
+    })
+
+    (testLib.mkResult {
+      id = "home-hyprland-017";
+      name = "legacy windowrulev2 is not configured";
+      passed =
+        (pkgs.lib.attrByPath [
+            "home-manager"
+            "users"
+            "andrea"
+            "wayland"
+            "windowManager"
+            "hyprland"
+            "settings"
+            "windowrulev2"
+          ]
+          null
+          config)
+        == null;
+      expected = "no windowrulev2 setting";
+      actual =
+        pkgs.lib.attrByPath [
+          "home-manager"
+          "users"
+          "andrea"
+          "wayland"
+          "windowManager"
+          "hyprland"
+          "settings"
+          "windowrulev2"
+        ]
+        null
+        config;
+      severity = "high";
+      rationale = "Deprecated windowrulev2 should not be emitted in generated Hyprland config";
+    })
   ];
 in
   pkgs.runCommand "eval-home-modules-hyprland" {} (

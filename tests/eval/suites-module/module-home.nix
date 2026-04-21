@@ -41,6 +41,24 @@
       severity = "high";
       rationale = "Home integration should keep explicit Home Manager activation.";
     })
+    (testLib.assertContains {
+      id = "module-home-004";
+      name = "hyprland window rules use current syntax";
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "wayland"
+        "windowManager"
+        "hyprland"
+        "settings"
+        "windowrule"
+      ];
+      element = "opacity 0.80 override 0.80 override, match:class ^(spotify)$";
+      severity = "medium";
+      rationale = "Home integration should keep generated Hyprland rules on current syntax.";
+    })
   ];
 in
   pkgs.runCommand "eval-module-home" {} (

@@ -58,5 +58,12 @@ vmLib.mkVmTest {
         severity="high",
         rationale="Graphics integrated module should not introduce runtime failures",
     )
+    assert_command(
+        "vm-module-graphics-008",
+        "serif default resolves to Test Tiempos Text",
+        "fc-match serif | grep -F 'Test Tiempos Text' >/dev/null",
+        severity="medium",
+        rationale="Graphics integrated module should materialize the committed serif default",
+    )
   '';
 }

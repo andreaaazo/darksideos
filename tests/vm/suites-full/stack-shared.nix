@@ -153,5 +153,19 @@ vmLib.mkVmTest {
         severity="medium",
         rationale="Full stack should include the signed wireless regulatory database",
     )
+    assert_command(
+        "vm-stack-shared-017",
+        "serif default resolves to Test Tiempos Text",
+        "fc-match serif | grep -F 'Test Tiempos Text' >/dev/null",
+        severity="medium",
+        rationale="Full stack should materialize the committed serif font baseline",
+    )
+    assert_command(
+        "vm-stack-shared-018",
+        "Hyprland config uses current windowrule syntax",
+        "sh -c 'f=/etc/profiles/per-user/andrea/etc/xdg/hypr/hyprland.conf; test -f \"$f\" || f=/home/andrea/.config/hypr/hyprland.conf; grep -E \"^[[:space:]]*windowrule[[:space:]]*=[[:space:]]*opacity 0[.]80 override 0[.]80 override, match:class [\\^][(]spotify[)][$]\" \"$f\" >/dev/null && ! grep -F \"windowrulev2\" \"$f\" >/dev/null'",
+        severity="medium",
+        rationale="Full stack should not emit deprecated Hyprland rule syntax",
+    )
   '';
 }

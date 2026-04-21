@@ -74,5 +74,12 @@ vmLib.mkVmTest {
         severity="high",
         rationale="Home integrated module should not introduce boot-time failures",
     )
+    assert_command(
+        "vm-module-home-009",
+        "generated Hyprland config uses current windowrule syntax",
+        "sh -c 'f=/etc/profiles/per-user/andrea/etc/xdg/hypr/hyprland.conf; test -f \"$f\" || f=/home/andrea/.config/hypr/hyprland.conf; grep -E \"^[[:space:]]*windowrule[[:space:]]*=[[:space:]]*opacity 0[.]80 override 0[.]80 override, match:class [\\^][(]spotify[)][$]\" \"$f\" >/dev/null && ! grep -F \"windowrulev2\" \"$f\" >/dev/null'",
+        severity="medium",
+        rationale="Integrated Home Manager config should not emit deprecated Hyprland rule syntax",
+    )
   '';
 }

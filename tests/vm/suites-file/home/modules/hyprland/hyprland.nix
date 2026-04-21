@@ -80,5 +80,19 @@ vmLib.mkVmTest {
         severity="high",
         rationale="Standalone hyprpaper module should install binary into user profile",
     )
+    assert_command(
+        "vm-home-hyprland-010",
+        "Hyprland config uses current windowrule syntax",
+        "sh -c 'f=/etc/profiles/per-user/andrea/etc/xdg/hypr/hyprland.conf; test -f \"$f\" || f=/home/andrea/.config/hypr/hyprland.conf; grep -E \"^[[:space:]]*windowrule[[:space:]]*=[[:space:]]*opacity 0[.]80 override 0[.]80 override, match:class [\\^][(]spotify[)][$]\" \"$f\" >/dev/null && grep -E \"^[[:space:]]*windowrule[[:space:]]*=[[:space:]]*no_shadow on, match:fullscreen true\" \"$f\" >/dev/null'",
+        severity="high",
+        rationale="Generated Hyprland config must use current windowrule/match syntax",
+    )
+    assert_command(
+        "vm-home-hyprland-011",
+        "Hyprland config does not emit legacy windowrulev2",
+        "sh -c 'f=/etc/profiles/per-user/andrea/etc/xdg/hypr/hyprland.conf; test -f \"$f\" || f=/home/andrea/.config/hypr/hyprland.conf; ! grep -F \"windowrulev2\" \"$f\" >/dev/null'",
+        severity="high",
+        rationale="Deprecated windowrulev2 should not be present in runtime config",
+    )
   '';
 }

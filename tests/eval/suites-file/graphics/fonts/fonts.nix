@@ -55,7 +55,7 @@
 
     (testLib.assertContains {
       id = "fonts-004";
-      name = "Serif fallback is Inter";
+      name = "Serif default is Test Tiempos Text";
       inherit config;
       path = [
         "fonts"
@@ -63,9 +63,9 @@
         "defaultFonts"
         "serif"
       ];
-      element = "Inter";
+      element = "Test Tiempos Text";
       severity = "medium";
-      rationale = "No dedicated serif font, Inter used as fallback";
+      rationale = "Serif generic family must resolve to the declared committed serif face";
     })
 
     (testLib.assertContains {
