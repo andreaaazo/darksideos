@@ -18,7 +18,7 @@
     # NixOS disk
     disk = {
       main = {
-        device = "/dev/disk/by-id/HERE_PUT_YOUR_DISK_ID"; # Find with: ls -la /dev/disk/by-id/ | grep nvme
+        device = "/dev/disk/by-id/nvme-CT1000E100SSD8_2544EAD0E31E";
         type = "disk";
         content = {
           type = "gpt";

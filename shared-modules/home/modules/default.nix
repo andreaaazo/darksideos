@@ -1,6 +1,6 @@
 # User-level Home Manager modules (shell, git, editor, etc.).
 # Each module is a standalone file imported here.
-{...}: {
+{pkgs, ...}: {
   # Import the shared Home Manager module set for interactive applications and UX features.
   imports = [
     ./hyprland
@@ -14,4 +14,10 @@
     ./hyprpicker
     ./spotify
   ];
+
+  home.packages = with pkgs; [
+  vim
+  git  
+  ];
+
 }

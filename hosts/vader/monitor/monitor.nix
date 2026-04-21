@@ -9,7 +9,7 @@ in {
 
     # Host-only Hyprland policy for vader's internal ProArt P16 panel.
     wayland.windowManager.hyprland.settings = {
-      monitorv2 = {
+      monitor = {
         # Empty output is Hyprland's documented fallback rule for every monitor without a more specific match.
         output = "";
         # Use the panel preferred timing so firmware/native refresh stays source-of-truth.
