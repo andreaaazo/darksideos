@@ -20,6 +20,9 @@
     ../../shared-modules/hardware/cpu-amd.nix
     ../../shared-modules/hardware/gpu-nvidia.nix
 
+    # Host-only laptop power policy
+    ./power.nix
+
     # Home
     ../../shared-modules/home
     ../../shared-modules/impermanence
