@@ -7,24 +7,12 @@ in {
     # HM recreates this XDG profile link at activation; source is in /etc/nixos and store-backed, so no extra impermanence entry is needed.
     xdg.dataFile.${icmTarget}.source = ./icc/${icmFile};
 
-    # Host-only Hyprland policy for vader's internal ProArt P16 panel.
+    # Host-only Hyprland policy for vader's internal ProArt P16 panel and unmatched external displays.
     wayland.windowManager.hyprland.settings = {
-      monitorv2 = {
-        # Empty output is Hyprland's documented fallback rule for every monitor without a more specific match.
-        output = "";
-        # Use the panel preferred timing so firmware/native refresh stays source-of-truth.
-        mode = "preferred";
-        # Let Hyprland place matching monitors to avoid overlap when external panels are hotplugged.
-        position = "auto";
-        # 3840x2400 at 1.5 gives a deterministic 2560x1600 logical workspace.
-        scale = 1.5;
-        # Prefer 10-bit scanout path to reduce banding on the OLED panel.
-        bitdepth = 10;
-        # Hyprland expects an absolute profile path, while Home Manager owns the target link.
-        icc = icmPath;
-        # Restrict VRR to fullscreen video/game paths to avoid desktop timing jitter.
-        vrr = 3;
-      };
+      monitor = [
+        # Empty output is the documented fallback rule; replace with eDP-1/desc once the panel name is confirmed if external ICC accuracy matters.
+        ",preferred,auto,1.5,bitdepth,10,icc,${icmPath},vrr,3"
+      ];
 
       render = {
         # Enable Hyprland's color-management pipeline so ICC and HDR policy are actually consumed.
