@@ -107,7 +107,7 @@ vmLib.mkVmTest {
     assert_command(
         "vm-stack-shared-010",
         "required services present and forbidden bloat services absent",
-        "sh -eu -c 'must_file=$(mktemp); forbidden_file=$(mktemp); actual_file=$(mktemp); missing_file=$(mktemp); forbidden_hit_file=$(mktemp); printf \"%s\\n\" \"NetworkManager\" \"NetworkManager-dispatcher\" \"bluetooth\" \"home-manager-andrea\" \"nftables\" \"nscd\" \"persist-persist-etc-machine\\\\x2did\" \"persist-persist-var-lib-systemd-random\\\\x2dseed\" \"systemd-resolved\" | sort -u > \"$must_file\"; printf \"%s\\n\" \"sshd\" \"cups\" \"docker\" \"avahi-daemon\" | sort -u > \"$forbidden_file\"; systemctl list-unit-files --type=service --state=enabled --no-legend --no-pager | sed \"s/[[:space:]].*$//\" | sed \"s/\\\\.service$//\" | sort -u > \"$actual_file\"; comm -23 \"$must_file\" \"$actual_file\" > \"$missing_file\"; comm -12 \"$forbidden_file\" \"$actual_file\" > \"$forbidden_hit_file\"; if [ -s \"$missing_file\" ] || [ -s \"$forbidden_hit_file\" ]; then echo \"Service policy mismatch\" >&2; if [ -s \"$missing_file\" ]; then echo \"Missing required services:\" >&2; cat \"$missing_file\" >&2; fi; if [ -s \"$forbidden_hit_file\" ]; then echo \"Forbidden enabled services:\" >&2; cat \"$forbidden_hit_file\" >&2; fi; echo \"Enabled services snapshot:\" >&2; cat \"$actual_file\" >&2; rm -f \"$must_file\" \"$forbidden_file\" \"$actual_file\" \"$missing_file\" \"$forbidden_hit_file\"; exit 1; fi; rm -f \"$must_file\" \"$forbidden_file\" \"$actual_file\" \"$missing_file\" \"$forbidden_hit_file\"'",
+        "sh -eu -c 'must_file=$(mktemp); forbidden_file=$(mktemp); actual_file=$(mktemp); missing_file=$(mktemp); forbidden_hit_file=$(mktemp); printf \"%s\\n\" \"NetworkManager\" \"NetworkManager-dispatcher\" \"bluetooth\" \"home-manager-andrea\" \"networkmanager-wifi-radio-off\" \"nftables\" \"nscd\" \"persist-persist-etc-machine\\\\x2did\" \"persist-persist-var-lib-systemd-random\\\\x2dseed\" \"systemd-resolved\" | sort -u > \"$must_file\"; printf \"%s\\n\" \"sshd\" \"cups\" \"docker\" \"avahi-daemon\" | sort -u > \"$forbidden_file\"; systemctl list-unit-files --type=service --state=enabled --no-legend --no-pager | sed \"s/[[:space:]].*$//\" | sed \"s/\\\\.service$//\" | sort -u > \"$actual_file\"; comm -23 \"$must_file\" \"$actual_file\" > \"$missing_file\"; comm -12 \"$forbidden_file\" \"$actual_file\" > \"$forbidden_hit_file\"; if [ -s \"$missing_file\" ] || [ -s \"$forbidden_hit_file\" ]; then echo \"Service policy mismatch\" >&2; if [ -s \"$missing_file\" ]; then echo \"Missing required services:\" >&2; cat \"$missing_file\" >&2; fi; if [ -s \"$forbidden_hit_file\" ]; then echo \"Forbidden enabled services:\" >&2; cat \"$forbidden_hit_file\" >&2; fi; echo \"Enabled services snapshot:\" >&2; cat \"$actual_file\" >&2; rm -f \"$must_file\" \"$forbidden_file\" \"$actual_file\" \"$missing_file\" \"$forbidden_hit_file\"; exit 1; fi; rm -f \"$must_file\" \"$forbidden_file\" \"$actual_file\" \"$missing_file\" \"$forbidden_hit_file\"'",
         severity="critical",
         rationale="Full stack should enforce required services and deny known bloat while tolerating VM/runtime bootstrap infrastructure",
     )
@@ -124,6 +124,34 @@ vmLib.mkVmTest {
         "test -f /etc/systemd/system/etc-nixos.mount && grep -Fx 'What=/persist/etc/nixos' /etc/systemd/system/etc-nixos.mount >/dev/null && grep -Fx 'Where=/etc/nixos' /etc/systemd/system/etc-nixos.mount >/dev/null",
         severity="high",
         rationale="Integrated stack should preserve flake source tree path across reboots on tmpfs root",
+    )
+    assert_command(
+        "vm-stack-shared-013",
+        "Wi-Fi radio is disabled after boot",
+        "nmcli radio wifi | grep -x 'disabled'",
+        severity="medium",
+        rationale="Full stack should not power Wi-Fi by default",
+    )
+    assert_command(
+        "vm-stack-shared-014",
+        "iwd regulatory country is rendered",
+        "grep -R -E '^[[:space:]]*Country[[:space:]]*=[[:space:]]*CH$' /etc/iwd >/dev/null",
+        severity="medium",
+        rationale="Full stack should materialize shared CH regulatory domain",
+    )
+    assert_command(
+        "vm-stack-shared-015",
+        "kernel regulatory domain is applied at boot",
+        "tr ' ' '\\n' </proc/cmdline | grep -x 'cfg80211.ieee80211_regdom=CH'",
+        severity="medium",
+        rationale="Full stack should pass regdomain to cfg80211 before Wi-Fi userspace starts",
+    )
+    assert_command(
+        "vm-stack-shared-016",
+        "wireless regulatory database is available",
+        "sh -eu -c 'for p in $(nix-store -qR /run/current-system | grep wireless-regdb); do test -f \"$p/lib/firmware/regulatory.db.zst\" && test -f \"$p/lib/firmware/regulatory.db.p7s.zst\" && exit 0; done; exit 1'",
+        severity="medium",
+        rationale="Full stack should include the signed wireless regulatory database",
     )
   '';
 }

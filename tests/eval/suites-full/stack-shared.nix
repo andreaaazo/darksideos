@@ -29,6 +29,7 @@
     "bluetooth"
     "home-manager-andrea"
     "nftables"
+    "networkmanager-wifi-radio-off"
     "nscd"
     "persist-persist-etc-machine\\x2did"
     "persist-persist-var-lib-systemd-random\\x2dseed"
@@ -277,6 +278,63 @@
       actual = enabledSystemServices;
       severity = "medium";
       rationale = "mDNS stack should stay opt-in to reduce service surface";
+    })
+
+    (testLib.assertContains {
+      id = "stack-019";
+      name = "Wi-Fi radio-off service enabled";
+      inherit config;
+      path = [
+        "systemd"
+        "services"
+        "networkmanager-wifi-radio-off"
+        "wantedBy"
+      ];
+      element = "multi-user.target";
+      severity = "medium";
+      rationale = "Full stack should keep Wi-Fi radio off until explicit activation";
+    })
+
+    (testLib.assertString {
+      id = "stack-020";
+      name = "iwd regulatory country is CH";
+      inherit config;
+      path = [
+        "networking"
+        "wireless"
+        "iwd"
+        "settings"
+        "General"
+        "Country"
+      ];
+      expected = "CH";
+      severity = "medium";
+      rationale = "Full stack should preserve shared regulatory country policy";
+    })
+
+    (testLib.assertEnabled {
+      id = "stack-021";
+      name = "wireless regulatory database enabled";
+      inherit config;
+      path = [
+        "hardware"
+        "wirelessRegulatoryDatabase"
+      ];
+      severity = "medium";
+      rationale = "Full stack should include signed regulatory data for cfg80211";
+    })
+
+    (testLib.assertContains {
+      id = "stack-022";
+      name = "kernel regulatory domain is CH";
+      inherit config;
+      path = [
+        "boot"
+        "kernelParams"
+      ];
+      element = "cfg80211.ieee80211_regdom=CH";
+      severity = "medium";
+      rationale = "Full stack should pass regulatory domain before Wi-Fi userspace starts";
     })
   ];
 in

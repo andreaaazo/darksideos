@@ -83,5 +83,40 @@ vmLib.mkVmTest {
         severity="high",
         rationale="Core integrated module should not introduce boot-time failures",
     )
+    assert_command(
+        "vm-module-core-009",
+        "Wi-Fi radio-off service is enabled",
+        "systemctl is-enabled --quiet networkmanager-wifi-radio-off.service",
+        severity="medium",
+        rationale="Core entrypoint should keep Wi-Fi cold until explicit user activation",
+    )
+    assert_command(
+        "vm-module-core-010",
+        "Wi-Fi radio is disabled after boot",
+        "nmcli radio wifi | grep -x 'disabled'",
+        severity="medium",
+        rationale="Core entrypoint should not power Wi-Fi by default",
+    )
+    assert_command(
+        "vm-module-core-011",
+        "iwd regulatory country is rendered",
+        "grep -R -E '^[[:space:]]*Country[[:space:]]*=[[:space:]]*CH$' /etc/iwd >/dev/null",
+        severity="medium",
+        rationale="Core entrypoint should materialize the shared CH regulatory domain",
+    )
+    assert_command(
+        "vm-module-core-012",
+        "kernel regulatory domain is applied at boot",
+        "tr ' ' '\\n' </proc/cmdline | grep -x 'cfg80211.ieee80211_regdom=CH'",
+        severity="medium",
+        rationale="Core entrypoint should pass regdomain to cfg80211 before Wi-Fi userspace starts",
+    )
+    assert_command(
+        "vm-module-core-013",
+        "wireless regulatory database is available",
+        "sh -eu -c 'for p in $(nix-store -qR /run/current-system | grep wireless-regdb); do test -f \"$p/lib/firmware/regulatory.db.zst\" && test -f \"$p/lib/firmware/regulatory.db.p7s.zst\" && exit 0; done; exit 1'",
+        severity="medium",
+        rationale="Core entrypoint should include the signed wireless regulatory database",
+    )
   '';
 }
