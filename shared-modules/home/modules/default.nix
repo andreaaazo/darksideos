@@ -16,8 +16,7 @@
   ];
 
   home.packages = with pkgs; [
-  vim
-  git  
+    vim
+    git
   ];
-
 }
