@@ -110,7 +110,7 @@ vmLib.mkVmTest {
     assert_command(
         "vm-audio-015",
         "pipewire stream normalization is rendered in shared profile",
-        "grep -E '^[[:space:]]*channelmix.normalize[[:space:]]*=[[:space:]]*true$' /etc/pipewire/pipewire.conf.d/95-high-quality-audio.conf >/dev/null",
+        "grep -E '^[[:space:]]*\"?channelmix\\.normalize\"?[[:space:]]*=[[:space:]]*true[,;]?[[:space:]]*$' /etc/pipewire/pipewire.conf.d/95-high-quality-audio.conf >/dev/null",
         severity="medium",
         rationale="Shared profile should materialize channel normalization to reduce clipping risk",
     )
