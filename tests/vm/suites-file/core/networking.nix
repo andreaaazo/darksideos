@@ -121,5 +121,40 @@ vmLib.mkVmTest {
         severity="high",
         rationale="Reverse-path filtering should remain enabled to reduce source-spoofed traffic acceptance",
     )
+    assert_command(
+        "vm-net-017",
+        "Wi-Fi radio-off service is enabled",
+        "systemctl is-enabled --quiet networkmanager-wifi-radio-off.service",
+        severity="medium",
+        rationale="Wi-Fi radio should stay off after boot until explicit user activation",
+    )
+    assert_command(
+        "vm-net-018",
+        "Wi-Fi radio is disabled after boot",
+        "nmcli radio wifi | grep -x 'disabled'",
+        severity="medium",
+        rationale="Shared baseline should not power Wi-Fi unless explicitly requested",
+    )
+    assert_command(
+        "vm-net-019",
+        "iwd regulatory country is rendered",
+        "grep -R -E '^[[:space:]]*Country[[:space:]]*=[[:space:]]*CH$' /etc/iwd >/dev/null",
+        severity="medium",
+        rationale="iwd should receive the shared CH regulatory domain",
+    )
+    assert_command(
+        "vm-net-020",
+        "kernel regulatory domain is applied at boot",
+        "tr ' ' '\\n' </proc/cmdline | grep -x 'cfg80211.ieee80211_regdom=CH'",
+        severity="medium",
+        rationale="cfg80211 should see the regulatory domain before Wi-Fi userspace starts",
+    )
+    assert_command(
+        "vm-net-021",
+        "wireless regulatory database is available",
+        "sh -eu -c 'for p in $(nix-store -qR /run/current-system | grep wireless-regdb); do test -f \"$p/lib/firmware/regulatory.db.zst\" && test -f \"$p/lib/firmware/regulatory.db.p7s.zst\" && exit 0; done; exit 1'",
+        severity="medium",
+        rationale="Signed regulatory database should be present for cfg80211 enforcement",
+    )
   '';
 }

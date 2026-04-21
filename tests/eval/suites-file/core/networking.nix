@@ -235,6 +235,94 @@
       severity = "high";
       rationale = "Strict reverse-path checks reduce spoofed-source packet acceptance";
     })
+
+    (testLib.assertContains {
+      id = "net-017";
+      name = "Wi-Fi radio-off service starts at boot";
+      inherit config;
+      path = [
+        "systemd"
+        "services"
+        "networkmanager-wifi-radio-off"
+        "wantedBy"
+      ];
+      element = "multi-user.target";
+      severity = "medium";
+      rationale = "Shared baseline keeps Wi-Fi cold until explicitly enabled";
+    })
+
+    (testLib.assertContains {
+      id = "net-018";
+      name = "Wi-Fi radio-off service waits for NetworkManager";
+      inherit config;
+      path = [
+        "systemd"
+        "services"
+        "networkmanager-wifi-radio-off"
+        "after"
+      ];
+      element = "NetworkManager.service";
+      severity = "medium";
+      rationale = "Radio policy needs the NetworkManager D-Bus control plane";
+    })
+
+    (testLib.assertStringContains {
+      id = "net-019";
+      name = "Wi-Fi radio-off service uses nmcli";
+      inherit config;
+      path = [
+        "systemd"
+        "services"
+        "networkmanager-wifi-radio-off"
+        "serviceConfig"
+        "ExecStart"
+      ];
+      substring = "nmcli radio wifi off";
+      severity = "medium";
+      rationale = "Boot policy must disable Wi-Fi without adding another manager daemon";
+    })
+
+    (testLib.assertString {
+      id = "net-020";
+      name = "iwd regulatory country is CH";
+      inherit config;
+      path = [
+        "networking"
+        "wireless"
+        "iwd"
+        "settings"
+        "General"
+        "Country"
+      ];
+      expected = "CH";
+      severity = "medium";
+      rationale = "Shared Wi-Fi policy should make regulatory domain explicit";
+    })
+
+    (testLib.assertEnabled {
+      id = "net-021";
+      name = "wireless regulatory database is enabled";
+      inherit config;
+      path = [
+        "hardware"
+        "wirelessRegulatoryDatabase"
+      ];
+      severity = "medium";
+      rationale = "cfg80211 should receive signed channel and power limit data";
+    })
+
+    (testLib.assertContains {
+      id = "net-022";
+      name = "kernel regulatory domain is CH";
+      inherit config;
+      path = [
+        "boot"
+        "kernelParams"
+      ];
+      element = "cfg80211.ieee80211_regdom=CH";
+      severity = "medium";
+      rationale = "Kernel regulatory domain should be fixed before Wi-Fi userspace starts";
+    })
   ];
 in
   pkgs.runCommand "eval-core-networking" {} (
