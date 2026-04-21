@@ -103,7 +103,7 @@ Shared behavior lives primarily in `shared-modules/`, with explicit composition 
 ### `graphics/`
 - **Hyprland** — Wayland compositor, XWayland disabled, Polkit enabled, session variables set
 - **Portals** — XDG Desktop Portal with Hyprland + GTK backends, D-Bus enabled
-- **Fonts** — Default packages disabled. JetBrains Mono Nerd Font, Inter, Apple Color Emoji, DIN Next
+- **Fonts** — Default packages disabled. JetBrains Mono Nerd Font, Inter, Test Tiempos Text, Apple Color Emoji, DIN Next
 
 ### `hardware/`
 - **audio.nix** — PipeWire + WirePlumber, ALSA enabled, Pulse/JACK disabled, no 32-bit ALSA
