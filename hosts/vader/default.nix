@@ -23,6 +23,9 @@
     # Host-only laptop power policy
     ./power
 
+    # Host-only internal display and color policy
+    ./monitor
+
     # Home
     ../../shared-modules/home
     ../../shared-modules/impermanence
