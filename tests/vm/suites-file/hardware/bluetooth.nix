@@ -3,11 +3,20 @@
 vmLib.mkVmTest {
   name = "hardware-bluetooth";
   nodeModules = [
+    # WirePlumber extraConfig materializes only when the audio session manager is enabled.
+    ../../../../shared-modules/hardware/audio.nix
     ../../../../shared-modules/hardware/bluetooth.nix
   ];
 
   testScript = ''
     ${vmLib.assertions.common}
+
+    wp_bt_config = "/nix/store/*-51-bluetooth-ultra.conf/share/wireplumber/wireplumber.conf.d/51-bluetooth-ultra.conf"
+
+
+    def wp_bt(command):
+        return f"sh -eu -c 'set -- {wp_bt_config}; test -f \"$1\"; f=$1; {command}'"
+
 
     assert_command(
         "vm-bt-001",
@@ -131,42 +140,42 @@ vmLib.mkVmTest {
     assert_command(
         "vm-bt-018",
         "WirePlumber bluetooth ultra policy file is materialized",
-        "sh -eu -c 'f=$(find /etc -type f -name \"51-bluetooth-ultra.conf\" | head -n1); test -n \"$f\"'",
+        wp_bt("true"),
         severity="high",
         rationale="Bluetooth codec/profile policy must be rendered in WirePlumber runtime config",
     )
     assert_command(
         "vm-bt-019",
         "WirePlumber bluetooth autoswitch policy is disabled",
-        "sh -eu -c 'f=$(find /etc -type f -name \"51-bluetooth-ultra.conf\" | head -n1); test -n \"$f\" && grep -E \"^[[:space:]]*bluetooth.autoswitch-to-headset-profile[[:space:]]*=[[:space:]]*false$\" \"$f\" >/dev/null'",
+        wp_bt("grep -E \"\\\"?bluetooth[.]autoswitch-to-headset-profile\\\"?[[:space:]]*[:=][[:space:]]*false\" \"$f\" >/dev/null"),
         severity="high",
         rationale="Playback profile should not auto-fall back to headset mode",
     )
     assert_command(
         "vm-bt-020",
         "WirePlumber bluetooth role and codec lists include modern profiles",
-        "sh -eu -c 'f=$(find /etc -type f -name \"51-bluetooth-ultra.conf\" | head -n1); test -n \"$f\"; for item in a2dp_sink a2dp_source bap_sink bap_source bap_bcast_sink bap_bcast_source hsp_hs hsp_ag hfp_hf hfp_ag sbc sbc_xq aac aac_eld ldac aptx aptx_hd aptx_ll aptx_ll_duplex faststream faststream_duplex lc3plus_h3 opus_05 opus_05_51 opus_05_71 opus_05_duplex opus_05_pro opus_g lc3; do grep -F \"\\\"$item\\\"\" \"$f\" >/dev/null; done'",
+        wp_bt("for item in a2dp_sink a2dp_source bap_sink bap_source bap_bcast_sink bap_bcast_source hsp_hs hsp_ag hfp_hf hfp_ag sbc sbc_xq aac aac_eld ldac aptx aptx_hd aptx_ll aptx_ll_duplex faststream faststream_duplex lc3plus_h3 opus_05 opus_05_51 opus_05_71 opus_05_duplex opus_05_pro opus_g lc3; do grep -F \"\\\"$item\\\"\" \"$f\" >/dev/null; done"),
         severity="high",
         rationale="Rendered config should expose declared classic and LE Audio role/codec surface",
     )
     assert_command(
         "vm-bt-021",
         "WirePlumber bluetooth property toggles are rendered",
-        "sh -eu -c 'f=$(find /etc -type f -name \"51-bluetooth-ultra.conf\" | head -n1); test -n \"$f\" && grep -E \"^[[:space:]]*bluez5.enable-sbc-xq[[:space:]]*=[[:space:]]*true$\" \"$f\" >/dev/null && grep -E \"^[[:space:]]*bluez5.enable-msbc[[:space:]]*=[[:space:]]*true$\" \"$f\" >/dev/null && grep -E \"^[[:space:]]*bluez5.enable-hw-volume[[:space:]]*=[[:space:]]*true$\" \"$f\" >/dev/null && grep -E \"^[[:space:]]*bluez5.hfphsp-backend[[:space:]]*=[[:space:]]*\\\"?native\\\"?$\" \"$f\" >/dev/null && grep -E \"^[[:space:]]*bluez5.dummy-avrcp-player[[:space:]]*=[[:space:]]*true$\" \"$f\" >/dev/null'",
+        wp_bt("grep -E \"\\\"?bluez5[.]enable-sbc-xq\\\"?[[:space:]]*[:=][[:space:]]*true\" \"$f\" >/dev/null && grep -E \"\\\"?bluez5[.]enable-msbc\\\"?[[:space:]]*[:=][[:space:]]*true\" \"$f\" >/dev/null && grep -E \"\\\"?bluez5[.]enable-hw-volume\\\"?[[:space:]]*[:=][[:space:]]*true\" \"$f\" >/dev/null && grep -E \"\\\"?bluez5[.]hfphsp-backend\\\"?[[:space:]]*[:=][[:space:]]*\\\"?native\\\"?\" \"$f\" >/dev/null && grep -E \"\\\"?bluez5[.]dummy-avrcp-player\\\"?[[:space:]]*[:=][[:space:]]*true\" \"$f\" >/dev/null"),
         severity="high",
         rationale="Core Bluetooth property toggles should match declared quality/compatibility policy",
     )
     assert_command(
         "vm-bt-022",
         "WirePlumber bluetooth rule auto-connect and hw-volume maps are rendered",
-        "sh -eu -c 'f=$(find /etc -type f -name \"51-bluetooth-ultra.conf\" | head -n1); test -n \"$f\" && grep -F \"bluez5.auto-connect\" \"$f\" >/dev/null && grep -F \"bluez5.hw-volume\" \"$f\" >/dev/null && grep -F \"\\\"bap_source\\\"\" \"$f\" >/dev/null'",
+        wp_bt("grep -F \"bluez5.auto-connect\" \"$f\" >/dev/null && grep -F \"bluez5.hw-volume\" \"$f\" >/dev/null && grep -F \"\\\"bap_source\\\"\" \"$f\" >/dev/null"),
         severity="high",
         rationale="Device rule maps should include LE Audio-aware auto-connect and hw-volume behavior",
     )
     assert_command(
         "vm-bt-023",
         "WirePlumber bluetooth quality preferences are rendered",
-        "sh -eu -c 'f=$(find /etc -type f -name \"51-bluetooth-ultra.conf\" | head -n1); test -n \"$f\" && grep -E \"^[[:space:]]*bluez5.a2dp.ldac.quality[[:space:]]*=[[:space:]]*\\\"?hq\\\"?$\" \"$f\" >/dev/null && grep -E \"^[[:space:]]*bluez5.a2dp.aac.bitratemode[[:space:]]*=[[:space:]]*5$\" \"$f\" >/dev/null && grep -E \"^[[:space:]]*bluez5.a2dp.opus.pro.application[[:space:]]*=[[:space:]]*\\\"?audio\\\"?$\" \"$f\" >/dev/null && grep -E \"^[[:space:]]*bluez5.a2dp.opus.pro.bidi.application[[:space:]]*=[[:space:]]*\\\"?audio\\\"?$\" \"$f\" >/dev/null'",
+        wp_bt("grep -E \"\\\"?bluez5[.]a2dp[.]ldac[.]quality\\\"?[[:space:]]*[:=][[:space:]]*\\\"?hq\\\"?\" \"$f\" >/dev/null && grep -E \"\\\"?bluez5[.]a2dp[.]aac[.]bitratemode\\\"?[[:space:]]*[:=][[:space:]]*5\" \"$f\" >/dev/null && grep -E \"\\\"?bluez5[.]a2dp[.]opus[.]pro[.]application\\\"?[[:space:]]*[:=][[:space:]]*\\\"?audio\\\"?\" \"$f\" >/dev/null && grep -E \"\\\"?bluez5[.]a2dp[.]opus[.]pro[.]bidi[.]application\\\"?[[:space:]]*[:=][[:space:]]*\\\"?audio\\\"?\" \"$f\" >/dev/null"),
         severity="high",
         rationale="Codec quality preferences should be materialized exactly for reproducible playback behavior",
     )
