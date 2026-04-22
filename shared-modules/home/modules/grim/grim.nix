@@ -1,4 +1,4 @@
 {pkgs, ...}: {
   # Install Grim utility in the user profile.
-  home.packages = [pkgs.grim];
+  home-manager.users.andrea.home.packages = [pkgs.grim];
 }

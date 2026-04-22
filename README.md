@@ -56,8 +56,7 @@ Validation is organized as a layered pipeline, not a single coarse check. Static
 | Hostname | Role | CPU | GPU |
 |---|---|---|---|
 | `starkiller` | Desktop | Intel | NVIDIA |
-
-`vader` remains a planned host scaffold (currently commented in `flake.nix`).
+| `vader` | Laptop | AMD | NVIDIA |
 
 ## Project Architecture
 
@@ -104,7 +103,7 @@ Shared behavior lives primarily in `shared-modules/`, with explicit composition 
 ### `graphics/`
 - **Hyprland** — Wayland compositor, XWayland disabled, Polkit enabled, session variables set
 - **Portals** — XDG Desktop Portal with Hyprland + GTK backends, D-Bus enabled
-- **Fonts** — Default packages disabled. JetBrains Mono Nerd Font, Inter, Apple Color Emoji, DIN Next
+- **Fonts** — Default packages disabled. JetBrains Mono Nerd Font, Inter, Test Tiempos Text, Apple Color Emoji, DIN Next
 
 ### `hardware/`
 - **audio.nix** — PipeWire + WirePlumber, ALSA enabled, Pulse/JACK disabled, no 32-bit ALSA

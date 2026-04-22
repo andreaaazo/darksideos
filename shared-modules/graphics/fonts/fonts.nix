@@ -23,6 +23,12 @@
       cp $src $out/share/fonts/truetype/AppleColorEmoji.ttf
     '';
   };
+
+  # Builds a local package from committed Tiempos Text .otf files for deterministic serif rendering.
+  test-tiempos = pkgs.runCommand "test-tiempos" {} ''
+    mkdir -p $out/share/fonts/opentype
+    cp ${./test-tiempos}/*.otf $out/share/fonts/opentype/
+  '';
 in {
   # NixOS fonts namespace (installed font packages and fontconfig defaults).
   fonts = {
@@ -37,6 +43,8 @@ in {
       pkgs.inter
       # The custom-built package defined above, providing Apple-style color emoji system-wide.
       apple-emoji
+      # Local serif text family used as the explicit generic serif default.
+      test-tiempos
       # Builds an inline Nix package that copies committed DIN Next .otf files into the nix store font directory.
       (pkgs.runCommand "din-next" {} ''
         mkdir -p $out/share/fonts/opentype
@@ -50,8 +58,8 @@ in {
       monospace = ["JetBrainsMono Nerd Font"];
       # When any app requests "sans-serif" font family, fontconfig resolves to Inter.
       sansSerif = ["Inter"];
-      # When any app requests "serif" font family, fontconfig falls back to Inter (no dedicated serif font installed).
-      serif = ["Inter"];
+      # When any app requests "serif" font family, fontconfig resolves to committed Tiempos Text.
+      serif = ["Test Tiempos Text"];
       # When any app needs to render emoji, fontconfig resolves to Apple Color Emoji.
       emoji = ["Apple Color Emoji"];
     };

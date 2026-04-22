@@ -1,9 +1,9 @@
 {pkgs, ...}: {
   # Keep hyprpaper binary available in user profile for manual control/debug.
-  home.packages = [pkgs.hyprpaper];
+  home-manager.users.andrea.home.packages = [pkgs.hyprpaper];
 
   # Use official Home Manager hyprpaper module for declarative config + service wiring.
-  services.hyprpaper = {
+  home-manager.users.andrea.services.hyprpaper = {
     # Enable hyprpaper user service managed by Home Manager.
     enable = true;
     # Hyprpaper runtime settings passed to generated configuration.

@@ -14,10 +14,10 @@
       border_size = 3;
       # ACTIVE BORDER COLOR
       # Color of the border for the focused window
-      col.active_border = "rgba(7d00e0ee) rgba(5628F3ee) 45deg";
+      "col.active_border" = "rgba(7d00e0ee) rgba(5628F3ee) 45deg";
       # INACTIVE BORDER COLOR
       # Color of the border for unfocused windows
-      col.inactive_border = "rgba(706C79ee)";
+      "col.inactive_border" = "rgba(706C79ee)";
       # TILING LAYOUT
       # Sets the default layout to 'dwindle' for dynamic window arrangement
       layout = "dwindle";

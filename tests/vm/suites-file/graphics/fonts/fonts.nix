@@ -35,7 +35,7 @@ vmLib.mkVmTest {
         "Inter font family is installed",
         "fc-list | grep -F 'Inter' >/dev/null",
         severity="high",
-        rationale="Sans/serif fallback baseline depends on Inter availability",
+        rationale="Sans-serif baseline depends on Inter availability",
     )
     assert_command(
         "vm-fonts-005",
@@ -53,48 +53,55 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-fonts-007",
+        "Test Tiempos Text custom fonts are installed",
+        "fc-list | grep -F 'Test Tiempos Text' >/dev/null",
+        severity="medium",
+        rationale="Shared serif baseline must include committed Tiempos Text fonts",
+    )
+    assert_command(
+        "vm-fonts-008",
         "monospace default resolves to JetBrains Mono Nerd",
         "fc-match monospace | grep -F 'JetBrainsMono' >/dev/null",
         severity="high",
         rationale="Monospace generic family must be pinned to the declared default",
     )
     assert_command(
-        "vm-fonts-008",
+        "vm-fonts-009",
         "sans-serif default resolves to Inter",
         "fc-match sans-serif | grep -F 'Inter' >/dev/null",
         severity="high",
         rationale="Sans-serif generic family must resolve to Inter baseline",
     )
     assert_command(
-        "vm-fonts-009",
-        "serif fallback resolves to Inter",
-        "fc-match serif | grep -F 'Inter' >/dev/null",
+        "vm-fonts-010",
+        "serif default resolves to Test Tiempos Text",
+        "fc-match serif | grep -F 'Test Tiempos Text' >/dev/null",
         severity="medium",
-        rationale="Serif generic family should follow declared fallback policy",
+        rationale="Serif generic family should follow declared committed font policy",
     )
     assert_command(
-        "vm-fonts-010",
+        "vm-fonts-011",
         "emoji default is configured as Apple Color Emoji",
         "grep -R 'Apple Color Emoji' /etc/fonts >/dev/null",
         severity="high",
         rationale="Fontconfig must include emoji default mapping for consistent rendering",
     )
     assert_command(
-        "vm-fonts-011",
+        "vm-fonts-012",
         "bitmap fonts are actively rejected in fontconfig policy",
         "grep -F '<patelt name=\"scalable\"><bool>false</bool></patelt>' /etc/fonts/conf.d/53-no-bitmaps.conf >/dev/null",
         severity="high",
         rationale="Legacy bitmap fonts should be blocked from selection",
     )
     assert_command(
-        "vm-fonts-012",
+        "vm-fonts-013",
         "per-user fontconfig override include is disabled",
         "! test -e /etc/fonts/conf.d/50-user.conf",
         severity="high",
         rationale="System policy should not include user-level fontconfig overrides",
     )
     assert_command(
-        "vm-fonts-013",
+        "vm-fonts-014",
         "no failed units after font stack activation",
         "test \"$(systemctl list-units --failed --plain --no-legend --all | wc -l)\" -eq 0",
         severity="high",

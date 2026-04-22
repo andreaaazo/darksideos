@@ -1,4 +1,4 @@
-# VM test for shared-modules/home/modules/kitty/default.nix via home/home.nix entrypoint.
+# VM test for shared-modules/home/modules/kitty/default.nix via home entrypoint.
 {vmLib}:
 vmLib.mkVmTest {
   name = "home-modules-kitty";
@@ -11,7 +11,7 @@ vmLib.mkVmTest {
       };
       system.stateVersion = "25.11";
     }
-    ../../../../../../shared-modules/home/home.nix
+    ../../../../../../shared-modules/home
   ];
 
   testScript = ''

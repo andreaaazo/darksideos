@@ -21,8 +21,19 @@
     jack.enable = false;
     # Keep network audio ports closed in shared baseline.
     raopOpenFirewall = false;
-    # WirePlumber policy/session manager for PipeWire.
-    wireplumber.enable = true;
+
+    wireplumber = {
+      # WirePlumber policy/session manager for PipeWire.
+      enable = true;
+      # WirePlumber drop-in for ALSA speaker policy.
+      extraConfig."95-high-quality-audio" = {
+        # ALSA monitor defaults for the built-in speaker path.
+        "monitor.alsa.properties" = {
+          # Use ACP path for deterministic card/profile handling.
+          "alsa.use-acp" = true;
+        };
+      };
+    };
 
     # High-fidelity playback defaults:
     # - fixed fallback clock at 48 kHz
@@ -56,7 +67,9 @@
       # Default per-stream processing properties.
       "stream.properties" = {
         # Use highest quality resampling profile.
-        "resample.quality" = 15;
+        "resample.quality" = 14;
+        # Normalize mixed channels to reduce clipping risk on speakers.
+        "channelmix.normalize" = true;
       };
     };
   };

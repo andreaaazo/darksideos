@@ -41,6 +41,50 @@
       severity = "high";
       rationale = "Home integration should keep explicit Home Manager activation.";
     })
+    (testLib.assertContains {
+      id = "module-home-004";
+      name = "hyprland window rules use current syntax";
+      inherit config;
+      path = [
+        "home-manager"
+        "users"
+        "andrea"
+        "wayland"
+        "windowManager"
+        "hyprland"
+        "settings"
+        "windowrule"
+      ];
+      element = "opacity 0.80 override 0.80 override, match:class ^(spotify)$";
+      severity = "medium";
+      rationale = "Home integration should keep generated Hyprland rules on current syntax.";
+    })
+    (testLib.assertEnabled {
+      id = "module-home-005";
+      name = "git program module is enabled";
+      inherit config;
+      path = ["home-manager" "users" "andrea" "programs" "git" "enable"];
+      severity = "medium";
+      rationale = "Home integration should import the dedicated Git module rather than relying on loose packages.";
+    })
+    (testLib.assertString {
+      id = "module-home-006";
+      name = "git signing key uses standard secret path";
+      inherit config;
+      path = ["home-manager" "users" "andrea" "programs" "git" "settings" "user" "signingKey"];
+      expected = "/run/secrets/andrea-git-ssh-key";
+      severity = "medium";
+      rationale = "Home integration should use the shared Git SSH secret-name contract.";
+    })
+    (testLib.assertContains {
+      id = "module-home-007";
+      name = "git ssh auth key uses standard secret path";
+      inherit config;
+      path = ["home-manager" "users" "andrea" "programs" "ssh" "matchBlocks" "github.com" "data" "identityFile"];
+      element = "/run/secrets/andrea-git-ssh-key";
+      severity = "medium";
+      rationale = "Home integration should reuse the shared Git SSH secret-name contract.";
+    })
   ];
 in
   pkgs.runCommand "eval-module-home" {} (

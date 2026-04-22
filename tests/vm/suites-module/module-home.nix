@@ -74,5 +74,26 @@ vmLib.mkVmTest {
         severity="high",
         rationale="Home integrated module should not introduce boot-time failures",
     )
+    assert_command(
+        "vm-module-home-009",
+        "generated Hyprland config uses current windowrule syntax",
+        "sh -c 'f=/etc/profiles/per-user/andrea/etc/xdg/hypr/hyprland.conf; test -f \"$f\" || f=/home/andrea/.config/hypr/hyprland.conf; grep -E \"^[[:space:]]*windowrule[[:space:]]*=[[:space:]]*opacity 0[.]80 override 0[.]80 override, match:class [\\^][(]spotify[)][$]\" \"$f\" >/dev/null && ! grep -F \"windowrulev2\" \"$f\" >/dev/null'",
+        severity="medium",
+        rationale="Integrated Home Manager config should not emit deprecated Hyprland rule syntax",
+    )
+    assert_command(
+        "vm-module-home-010",
+        "git config is rendered for andrea",
+        "sh -c 'g=$(readlink -f /etc/profiles/per-user/andrea); f=/home/andrea/.config/git/config; test -f \"$f\" || f=\"$g/home-files/.config/git/config\"; test -f \"$f\" && /etc/profiles/per-user/andrea/bin/git config --file \"$f\" --get init.defaultBranch | grep -Fx \"main\" >/dev/null && /etc/profiles/per-user/andrea/bin/git config --file \"$f\" --get gpg.format | grep -Fx \"ssh\" >/dev/null && /etc/profiles/per-user/andrea/bin/git config --file \"$f\" --get user.signingkey | grep -Fx \"/run/secrets/andrea-git-ssh-key\" >/dev/null'",
+        severity="medium",
+        rationale="Integrated Home Manager config should import the dedicated Git module",
+    )
+    assert_command(
+        "vm-module-home-011",
+        "github ssh config is rendered for andrea",
+        "sh -c 'g=$(readlink -f /etc/profiles/per-user/andrea); f=/home/andrea/.ssh/config; test -f \"$f\" || f=\"$g/home-files/.ssh/config\"; test -f \"$f\" && grep -F \"IdentityFile /run/secrets/andrea-git-ssh-key\" \"$f\" >/dev/null && grep -F \"IdentitiesOnly yes\" \"$f\" >/dev/null'",
+        severity="medium",
+        rationale="Integrated Home Manager config should render the shared Git SSH secret path",
+    )
   '';
 }

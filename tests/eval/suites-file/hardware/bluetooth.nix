@@ -188,8 +188,138 @@
       rationale = "Network profile should keep security checks enabled";
     })
 
-    (testLib.assertEnabled {
+    (testLib.assertEqual {
       id = "bluetooth-013";
+      name = "SecureConnections enforced";
+      inherit config;
+      path = [
+        "hardware"
+        "bluetooth"
+        "settings"
+        "General"
+        "SecureConnections"
+      ];
+      expected = "only";
+      severity = "high";
+      rationale = "Bluetooth links should require secure connection mode";
+    })
+
+    (testLib.assertEnabled {
+      id = "bluetooth-014";
+      name = "KernelExperimental enabled";
+      inherit config;
+      path = [
+        "hardware"
+        "bluetooth"
+        "settings"
+        "General"
+        "KernelExperimental"
+      ];
+      severity = "medium";
+      rationale = "Shared baseline should expose kernel experimental Bluetooth feature gate";
+    })
+
+    (testLib.assertEnabled {
+      id = "bluetooth-015";
+      name = "RefreshDiscovery enabled";
+      inherit config;
+      path = [
+        "hardware"
+        "bluetooth"
+        "settings"
+        "General"
+        "RefreshDiscovery"
+      ];
+      severity = "medium";
+      rationale = "Discovery refresh should be explicit to reduce stale metadata";
+    })
+
+    (testLib.assertDisabled {
+      id = "bluetooth-016";
+      name = "WirePlumber Bluetooth headset autoswitch disabled";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "wireplumber"
+        "extraConfig"
+        "51-bluetooth-ultra"
+        "wireplumber.settings"
+        "bluetooth.autoswitch-to-headset-profile"
+      ];
+      severity = "high";
+      rationale = "Do not auto-switch from high-quality playback profile to headset profile";
+    })
+
+    (testLib.assertEqual {
+      id = "bluetooth-017";
+      name = "WirePlumber Bluetooth roles list is explicit";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "wireplumber"
+        "extraConfig"
+        "51-bluetooth-ultra"
+        "monitor.bluez.properties"
+        "bluez5.roles"
+      ];
+      expected = [
+        "a2dp_sink"
+        "a2dp_source"
+        "bap_sink"
+        "bap_source"
+        "bap_bcast_sink"
+        "bap_bcast_source"
+        "hsp_hs"
+        "hsp_ag"
+        "hfp_hf"
+        "hfp_ag"
+      ];
+      severity = "high";
+      rationale = "Roles list should stay deterministic to expose expected classic and LE audio paths";
+    })
+
+    (testLib.assertEqual {
+      id = "bluetooth-018";
+      name = "WirePlumber Bluetooth codec allowlist is explicit";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "wireplumber"
+        "extraConfig"
+        "51-bluetooth-ultra"
+        "monitor.bluez.properties"
+        "bluez5.codecs"
+      ];
+      expected = [
+        "sbc"
+        "sbc_xq"
+        "aac"
+        "aac_eld"
+        "ldac"
+        "aptx"
+        "aptx_hd"
+        "aptx_ll"
+        "aptx_ll_duplex"
+        "faststream"
+        "faststream_duplex"
+        "lc3plus_h3"
+        "opus_05"
+        "opus_05_51"
+        "opus_05_71"
+        "opus_05_duplex"
+        "opus_05_pro"
+        "opus_g"
+        "lc3"
+      ];
+      severity = "high";
+      rationale = "Codec list should be fixed so profile behavior remains reproducible across hosts";
+    })
+
+    (testLib.assertEnabled {
+      id = "bluetooth-019";
       name = "WirePlumber Bluetooth enables SBC XQ";
       inherit config;
       path = [
@@ -197,7 +327,7 @@
         "pipewire"
         "wireplumber"
         "extraConfig"
-        "51-bluez-audio-quality"
+        "51-bluetooth-ultra"
         "monitor.bluez.properties"
         "bluez5.enable-sbc-xq"
       ];
@@ -206,7 +336,7 @@
     })
 
     (testLib.assertEnabled {
-      id = "bluetooth-014";
+      id = "bluetooth-020";
       name = "WirePlumber Bluetooth enables mSBC";
       inherit config;
       path = [
@@ -214,7 +344,7 @@
         "pipewire"
         "wireplumber"
         "extraConfig"
-        "51-bluez-audio-quality"
+        "51-bluetooth-ultra"
         "monitor.bluez.properties"
         "bluez5.enable-msbc"
       ];
@@ -223,7 +353,7 @@
     })
 
     (testLib.assertEnabled {
-      id = "bluetooth-015";
+      id = "bluetooth-021";
       name = "WirePlumber Bluetooth enables hardware volume sync";
       inherit config;
       path = [
@@ -231,7 +361,7 @@
         "pipewire"
         "wireplumber"
         "extraConfig"
-        "51-bluez-audio-quality"
+        "51-bluetooth-ultra"
         "monitor.bluez.properties"
         "bluez5.enable-hw-volume"
       ];
@@ -239,21 +369,90 @@
       rationale = "Hardware volume sync avoids gain mismatch between host and headset";
     })
 
-    (testLib.assertDisabled {
-      id = "bluetooth-016";
-      name = "WirePlumber Bluetooth disables automatic low-quality profile switching";
+    (testLib.assertEqual {
+      id = "bluetooth-022";
+      name = "WirePlumber Bluetooth HFP/HSP backend is native";
       inherit config;
       path = [
         "services"
         "pipewire"
         "wireplumber"
         "extraConfig"
-        "51-bluez-audio-quality"
+        "51-bluetooth-ultra"
         "monitor.bluez.properties"
-        "bluez5.autoswitch-profile"
+        "bluez5.hfphsp-backend"
+      ];
+      expected = "native";
+      severity = "high";
+      rationale = "Native backend keeps call profile handling explicit and dependency-light";
+    })
+
+    (testLib.assertEnabled {
+      id = "bluetooth-023";
+      name = "WirePlumber Bluetooth dummy AVRCP player enabled";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "wireplumber"
+        "extraConfig"
+        "51-bluetooth-ultra"
+        "monitor.bluez.properties"
+        "bluez5.dummy-avrcp-player"
+      ];
+      severity = "medium";
+      rationale = "Dummy AVRCP player improves metadata/control compatibility on some receivers";
+    })
+
+    (testLib.assertEqual {
+      id = "bluetooth-024";
+      name = "WirePlumber Bluetooth rule set is explicit";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "wireplumber"
+        "extraConfig"
+        "51-bluetooth-ultra"
+        "monitor.bluez.rules"
+      ];
+      expected = [
+        {
+          matches = [
+            {"device.name" = "~bluez_card.*";}
+          ];
+          actions = {
+            "update-props" = {
+              "bluez5.auto-connect" = [
+                "hfp_hf"
+                "hsp_hs"
+                "a2dp_sink"
+                "hfp_ag"
+                "hsp_ag"
+                "a2dp_source"
+                "bap_sink"
+                "bap_source"
+              ];
+              "bluez5.hw-volume" = [
+                "hfp_hf"
+                "hsp_hs"
+                "a2dp_sink"
+                "hfp_ag"
+                "hsp_ag"
+                "a2dp_source"
+                "bap_sink"
+                "bap_source"
+              ];
+              "bluez5.a2dp.ldac.quality" = "hq";
+              "bluez5.a2dp.aac.bitratemode" = 5;
+              "bluez5.a2dp.opus.pro.application" = "audio";
+              "bluez5.a2dp.opus.pro.bidi.application" = "audio";
+            };
+          };
+        }
       ];
       severity = "high";
-      rationale = "Do not auto-switch from high-quality playback profile to headset profile";
+      rationale = "Rule payload should stay deterministic for codec and profile behavior";
     })
   ];
 in

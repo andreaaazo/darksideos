@@ -147,8 +147,25 @@
       rationale = "Session manager handles device routing and hotplug";
     })
 
-    (testLib.assertDisabled {
+    (testLib.assertEnabled {
       id = "audio-011";
+      name = "WirePlumber ALSA ACP policy enabled";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "wireplumber"
+        "extraConfig"
+        "95-high-quality-audio"
+        "monitor.alsa.properties"
+        "alsa.use-acp"
+      ];
+      severity = "high";
+      rationale = "Shared baseline should enforce deterministic ALSA card/profile handling";
+    })
+
+    (testLib.assertDisabled {
+      id = "audio-012";
       name = "PulseAudio daemon disabled";
       inherit config;
       path = [
@@ -161,7 +178,7 @@
     })
 
     (testLib.assertEnabled {
-      id = "audio-012";
+      id = "audio-013";
       name = "RealtimeKit enabled";
       inherit config;
       path = [
@@ -174,7 +191,7 @@
     })
 
     (testLib.assertEqual {
-      id = "audio-013";
+      id = "audio-014";
       name = "Pipewire fallback clock rate is 48 kHz";
       inherit config;
       path = [
@@ -192,7 +209,7 @@
     })
 
     (testLib.assertEqual {
-      id = "audio-014";
+      id = "audio-015";
       name = "Pipewire allowed rates cover hi-fi and studio set";
       inherit config;
       path = [
@@ -219,7 +236,7 @@
     })
 
     (testLib.assertEqual {
-      id = "audio-015";
+      id = "audio-016";
       name = "Pipewire default quantum is set for stable playback";
       inherit config;
       path = [
@@ -237,7 +254,7 @@
     })
 
     (testLib.assertEqual {
-      id = "audio-016";
+      id = "audio-017";
       name = "Pipewire minimum quantum is constrained";
       inherit config;
       path = [
@@ -255,7 +272,7 @@
     })
 
     (testLib.assertEqual {
-      id = "audio-017";
+      id = "audio-018";
       name = "Pipewire maximum quantum is constrained";
       inherit config;
       path = [
@@ -273,7 +290,7 @@
     })
 
     (testLib.assertEqual {
-      id = "audio-018";
+      id = "audio-019";
       name = "Pipewire resampler quality set to max precision";
       inherit config;
       path = [
@@ -285,9 +302,26 @@
         "stream.properties"
         "resample.quality"
       ];
-      expected = 15;
+      expected = 14;
       severity = "high";
       rationale = "Highest resampler quality improves mathematical precision for conversion paths";
+    })
+
+    (testLib.assertEnabled {
+      id = "audio-020";
+      name = "Pipewire stream channel normalization enabled";
+      inherit config;
+      path = [
+        "services"
+        "pipewire"
+        "extraConfig"
+        "pipewire"
+        "95-high-quality-audio"
+        "stream.properties"
+        "channelmix.normalize"
+      ];
+      severity = "medium";
+      rationale = "Shared baseline should normalize channel mix to reduce clipping risk";
     })
   ];
 in

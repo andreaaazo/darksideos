@@ -109,6 +109,20 @@ vmLib.mkVmTest {
     )
     assert_command(
         "vm-audio-015",
+        "pipewire stream normalization is rendered in shared profile",
+        "grep -E '^[[:space:]]*\"?channelmix[.]normalize\"?[[:space:]]*[:=][[:space:]]*true[,;]?[[:space:]]*$' /etc/pipewire/pipewire.conf.d/95-high-quality-audio.conf >/dev/null",
+        severity="medium",
+        rationale="Shared profile should materialize channel normalization to reduce clipping risk",
+    )
+    assert_command(
+        "vm-audio-016",
+        "wireplumber ALSA ACP policy is rendered in shared profile",
+        "grep -R -E '\"?alsa[.]use-acp\"?[[:space:]]*[:=][[:space:]]*true' /nix/store/*-95-high-quality-audio.conf/share/wireplumber/wireplumber.conf.d/95-high-quality-audio.conf >/dev/null",
+        severity="high",
+        rationale="Shared profile should materialize deterministic ALSA profile handling policy",
+    )
+    assert_command(
+        "vm-audio-017",
         "no failed units after audio policy activation",
         "test \"$(systemctl list-units --failed --plain --no-legend --all | wc -l)\" -eq 0",
         severity="high",
