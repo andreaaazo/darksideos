@@ -11,7 +11,7 @@ in {
     wayland.windowManager.hyprland.settings = {
       monitor = [
         # Empty output is the documented fallback rule; replace with eDP-1/desc once the panel name is confirmed if external ICC accuracy matters.
-        ",preferred,auto,1.5,bitdepth,10,icc,${icmPath},vrr,3"
+        "eDP-1,3840x2400@120,auto,1.5,bitdepth,10,vrr,3"
       ];
 
       render = {

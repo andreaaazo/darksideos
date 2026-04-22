@@ -25,6 +25,10 @@
 
     # Host-only internal display and color policy
     ./monitor
+	
+    
+    # Host-only hyprland configuration
+    ./hyprland
 
     # Home
     ../../shared-modules/home
