@@ -22,7 +22,7 @@
       # Use systemd-resolved integration for modern DNS management.
       dns = "systemd-resolved";
       # Prefer modern Wi-Fi backend (host can still override power policies).
-      wifi.backend = "iwd";
+      wifi.backend = "wpa_supplicant";
     };
 
     # Sets the system's hostname used in shell prompts, DNS, DHCP client identification, and systemd journal logs.

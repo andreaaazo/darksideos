@@ -36,7 +36,7 @@
       # Firefox native Wayland backend toggle.
       MOZ_ENABLE_WAYLAND = "1";
       # Global cursor theme policy (size remains user-level in Home Manager).
-      XCURSOR_THEME = "phinger-cursors-light";
+      XCURSOR_THEME = "phinger-cursors-dark";
     };
   };
 }

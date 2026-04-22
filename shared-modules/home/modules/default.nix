@@ -14,5 +14,6 @@
     ./hyprpicker
     ./spotify
     ./vim
+./btop
   ];
 }

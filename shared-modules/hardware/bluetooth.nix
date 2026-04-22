@@ -23,13 +23,13 @@
         # Use controller privacy mode for rotating private addresses.
         Privacy = "device";
         # Do not silently re-pair JustWorks devices.
-        JustWorksRepairing = "never";
+        # JustWorksRepairing = "never";
         # Enable BlueZ experimental paths to unlock newer profiles; warning: behavior can change across BlueZ updates.
-        Experimental = true;
+        Experimental = false;
         # Force Secure Connections so legacy insecure pairing is rejected.
-        SecureConnections = "only";
+        SecureConnections = "on";
         # Enable kernel-side experimental Bluetooth features; warning: depends on kernel support and may be ignored.
-        KernelExperimental = true;
+        KernelExperimental = false;
         # Periodically refresh discovery cache so stale device metadata is less likely after firmware changes.
         RefreshDiscovery = true;
       };

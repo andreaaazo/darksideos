@@ -20,4 +20,4 @@ for supply in /sys/class/power_supply/*; do
 done
 
 printf 'asus-power-profile: %s -> %s\n' "$reason" "$profile"
-exec @asusctl@ profile -P "$profile"
+exec @asusctl@ profile set "$profile"
