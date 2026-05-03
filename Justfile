@@ -1,13 +1,19 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
 docker_image := "darksideos-checks:latest"
+nix_config := "experimental-features = nix-command flakes"
+
+# Persistent Docker volumes used to keep the Nix store/cache between runs.
+# This avoids downloading nixpkgs and build dependencies again every time.
+nix_cache_mounts := "--mount type=volume,src=darksideos-nix-store,dst=/nix --mount type=volume,src=darksideos-nix-cache,dst=/root/.cache/nix"
 
 docker-build:
     docker build -f Dockerfile -t {{docker_image}} .
 
 check-code: docker-build
     docker run --rm \
-      -e NIX_CONFIG='experimental-features = nix-command flakes' \
+      -e NIX_CONFIG='{{nix_config}}' \
+      {{nix_cache_mounts}} \
       -v "$PWD:/work" \
       -w /work \
       {{docker_image}} \
@@ -15,10 +21,11 @@ check-code: docker-build
 
 check-eval: docker-build
     docker run --rm \
-      -e NIX_CONFIG='experimental-features = nix-command flakes' \
+      -e NIX_CONFIG='{{nix_config}}' \
       -e EVAL_SCOPE \
       -e EVAL_TARGET \
       -e EVAL_SHOW_NIXOS_LOGS \
+      {{nix_cache_mounts}} \
       -v "$PWD:/work" \
       -w /work \
       {{docker_image}} \
@@ -26,11 +33,12 @@ check-eval: docker-build
 
 check-vm: docker-build
     docker run --rm \
-      -e NIX_CONFIG='experimental-features = nix-command flakes' \
+      -e NIX_CONFIG='{{nix_config}}' \
       -e VM_SCOPE \
       -e VM_TARGET \
       -e VM_SHOW_NIXOS_LOGS \
       --device /dev/kvm \
+      {{nix_cache_mounts}} \
       -v "$PWD:/work" \
       -w /work \
       {{docker_image}} \
@@ -40,9 +48,10 @@ check-all: check-code check-eval check-vm
 
 format-code: docker-build
     docker run --rm \
-      -e NIX_CONFIG='experimental-features = nix-command flakes' \
+      -e NIX_CONFIG='{{nix_config}}' \
       -e HOST_UID="$(id -u)" \
       -e HOST_GID="$(id -g)" \
+      {{nix_cache_mounts}} \
       -v "$PWD:/work" \
       -w /work \
       {{docker_image}} \
@@ -50,7 +59,8 @@ format-code: docker-build
 
 lint-code: docker-build
     docker run --rm \
-      -e NIX_CONFIG='experimental-features = nix-command flakes' \
+      -e NIX_CONFIG='{{nix_config}}' \
+      {{nix_cache_mounts}} \
       -v "$PWD:/work" \
       -w /work \
       {{docker_image}} \
@@ -58,7 +68,8 @@ lint-code: docker-build
 
 dead-code: docker-build
     docker run --rm \
-      -e NIX_CONFIG='experimental-features = nix-command flakes' \
+      -e NIX_CONFIG='{{nix_config}}' \
+      {{nix_cache_mounts}} \
       -v "$PWD:/work" \
       -w /work \
       {{docker_image}} \
@@ -66,10 +77,14 @@ dead-code: docker-build
 
 update-lock: docker-build
     docker run --rm \
-      -e NIX_CONFIG='experimental-features = nix-command flakes' \
+      -e NIX_CONFIG='{{nix_config}}' \
       -e HOST_UID="$(id -u)" \
       -e HOST_GID="$(id -g)" \
+      {{nix_cache_mounts}} \
       -v "$PWD:/work" \
       -w /work \
       {{docker_image}} \
       bash -euo pipefail -c 'nix flake update --flake path:/work && chown "$HOST_UID:$HOST_GID" /work/flake.lock'
+
+clean-docker-cache:
+    docker volume rm darksideos-nix-store darksideos-nix-cache || true
