@@ -112,6 +112,20 @@
             ./hosts/starkiller
           ];
       };
+      virtualbox = nixpkgs.lib.nixosSystem {
+        system = linuxSystem;
+        specialArgs = {
+          hostName = "virtualbox";
+          stateVersion = "25.11";
+          # Expose zenBrowser input to shared modules that import external Home Manager modules.
+          inherit zenBrowser;
+        };
+        modules =
+          commonModules
+          ++ [
+            ./hosts/virtualbox
+          ];
+      };
 
       # vader = nixpkgs.lib.nixosSystem {
       #   system = linuxSystem;
