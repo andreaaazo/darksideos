@@ -308,108 +308,137 @@ After reboot, this path is available as `/etc/nixos` via impermanence bind mount
 - VM checks require `/dev/kvm` passthrough for reliable performance and timing-sensitive assertions.
 - Runtime tooling is isolated in the container environment; only repository files mounted in `/work` are modified when applicable.
 
-All local checks run through Docker to keep host systems clean and to match CI behavior.
-GitHub Actions calls the same scripts in `tests/local/scripts/` to avoid command drift.
-Eval and VM runners support scoped execution through explicit environment variables.
+All local checks run through Docker to keep host systems clean. The `Justfile` is the only human entrypoint; each recipe calls a dedicated shell entrypoint under `tests/scripts/iso/` or `tests/scripts/shared-modules/`.
 
 | Command | Purpose |
 |---|---|
-| `just check-code` | Runs formatting, linting, dead code, and host configuration evaluation |
-| `just check-eval` | Runs eval tests. Requires `EVAL_SCOPE` and `EVAL_SHOW_NIXOS_LOGS`. See [Eval Scope Control](#eval-scope-control-just-check-eval-only) |
-| `just check-vm` | Runs VM tests. Requires `VM_SCOPE` and `VM_SHOW_NIXOS_LOGS`. See [VM Scope Control](#vm-scope-control-just-check-vm-only) |
-| `just check-all` | Runs `check-code`, `check-eval`, and `check-vm` in sequence (requires both eval and VM env vars) |
-| `just format-code` | Formats repository files locally via Docker runner |
-| `just lint-code` | Runs linting check output only |
-| `just dead-code` | Runs dead code check output only |
+| `just shared-modules-check-code <scope> <target> <show_nix_logs>` | Runs shared-modules static checks |
+| `just shared-modules-check-eval <scope> <target> <show_nix_logs>` | Runs shared-modules eval tests |
+| `just shared-modules-check-vm <scope> <target> <show_nixos_logs>` | Runs shared-modules VM tests |
+| `just shared-modules-format-code` | Formats shared-modules source and tests |
+| `just shared-modules-lint-code <show_nix_logs>` | Runs shared-modules statix linting |
+| `just shared-modules-dead-code <show_nix_logs>` | Runs shared-modules deadnix checks |
+| `just iso-check-static <show_nixos_logs>` | Runs all ISO static checks |
+| `just iso-check-unit <show_nixos_logs>` | Runs all ISO shell unit tests |
+| `just iso-check-integration <show_nixos_logs>` | Runs all ISO contract tests with destructive adapters stubbed |
+| `just iso-check-eval <show_nixos_logs>` | Runs all ISO NixOS eval tests |
+| `just iso-check-vm <show_nixos_logs>` | Runs all ISO VM tests |
+| `just iso-check-all <show_nixos_logs>` | Runs all ISO static, unit, integration, eval, and VM checks |
+| `just iso-format-code` | Formats ISO source and tests |
+| `just iso-build` | Builds the installer ISO and writes the artifact into `build/` |
+| `just iso-cleanup` | Removes local ISO artifacts from `build/` |
 | `just update-lock` | Updates `flake.lock` deterministically via Docker runner |
 
-#### Eval Scope Control (`just check-eval` only)
+#### Shared-Modules Scope Control
 
-- `EVAL_SCOPE` is required for `just check-eval`.
-- `EVAL_SHOW_NIXOS_LOGS` is required for `just check-eval`:
-  - `true`: show full Nix eval/build logs
-  - `false`: show assertion output only (`[PASS]`/`[FAIL]` + Expected/Actual/Severity/Rationale)
-- `EVAL_SCOPE=full`: run complete dump (`suites-file` + `suites-module` + `suites-full`)
-- `EVAL_SCOPE=file`: without `EVAL_TARGET`, run all file-level tests; with `EVAL_TARGET`, run one file-level test (example: `eval-core-nix`)
-- `EVAL_SCOPE=module`: without `EVAL_TARGET`, run all module dumps; with `EVAL_TARGET`, run one module dump (file-level tests for module + `eval-module-<module>`)
-- Invalid `EVAL_TARGET` values fail immediately with explicit error and allowed targets list.
-- `EVAL_TARGET` with `EVAL_SCOPE=full` is rejected (targeting is only valid for `file`/`module`).
+- `shared-modules-check-code`: `scope=file|module|full|all`.
+- `shared-modules-check-eval`: `scope=file|module|full|all`.
+- `shared-modules-check-vm`: `scope=file|module|full|all`.
+- `target=all` runs the whole selected scope.
+- `show_nix_logs` and `show_nixos_logs` are explicit booleans: `true|false`.
+- Invalid targets fail immediately with explicit error and allowed targets list.
 
 Examples:
 
 ```bash
-# Full eval dump
-EVAL_SCOPE=full EVAL_SHOW_NIXOS_LOGS=false just check-eval
+# Full shared-modules static stack
+just shared-modules-check-code full all false
 
-# Single file-level eval test
-EVAL_SCOPE=file EVAL_TARGET=eval-core-nix EVAL_SHOW_NIXOS_LOGS=true just check-eval
+# One shared-modules static file check
+just shared-modules-check-code file linting false
 
-# Single module eval dump (all eval-home-* + eval-module-home)
-EVAL_SCOPE=module EVAL_TARGET=home EVAL_SHOW_NIXOS_LOGS=false just check-eval
+# Eval all tests related to one module
+just shared-modules-check-eval module home false
+
+# Run one shared-modules VM file test
+just shared-modules-check-vm file core-nix false
 ```
 
-#### VM Scope Control (`just check-vm` only)
+#### ISO Pipeline Control
 
-- `VM_SCOPE` is required for `just check-vm`.
-- `VM_SHOW_NIXOS_LOGS` is required for `just check-vm`:
-  - `true`: show full Nix/NixOS build logs
-  - `false`: show assertion output only (`[PASS]`/`[FAIL]` + Expected/Actual/Severity/Rationale)
-- `VM_SCOPE=full`: run complete dump (`suites-file` + `suites-module` + `suites-full`)
-- `VM_SCOPE=file`: without `VM_TARGET`, run all file-level tests; with `VM_TARGET`, run one file-level test (example: `vm-core-nix`)
-- `VM_SCOPE=module`: without `VM_TARGET`, run all module dumps; with `VM_TARGET`, run one module dump (file-level tests for module + `vm-module-<module>`)
-- Invalid `VM_TARGET` values fail immediately with explicit error and allowed targets list.
-- `VM_TARGET` with `VM_SCOPE=full` is rejected (targeting is only valid for `file`/`module`).
+- ISO pipelines do not expose target selection.
+- Each ISO check command runs every test in its pipeline.
+- The only ISO check argument is the explicit log boolean: `true|false`.
+- `iso-check-vm` runs both ISO VM smoke and install coverage.
 
 Examples:
 
 ```bash
-# Full VM dump
-VM_SCOPE=full VM_SHOW_NIXOS_LOGS=false just check-vm
+# Full ISO static pipeline
+just iso-check-static false
 
-# Single file-level VM test
-VM_SCOPE=file VM_TARGET=vm-core-nix VM_SHOW_NIXOS_LOGS=true just check-vm
+# Full ISO unit pipeline
+just iso-check-unit false
 
-# Targeted secrets runtime test
-VM_SCOPE=file VM_TARGET=vm-core-secrets VM_SHOW_NIXOS_LOGS=false just check-vm
+# Full ISO create-new-host integration contracts
+just iso-check-integration false
 
-# Single module VM dump (all vm-home-* + vm-module-home)
-VM_SCOPE=module VM_TARGET=home VM_SHOW_NIXOS_LOGS=false just check-vm
+# Full ISO eval contracts
+just iso-check-eval false
+
+# Full ISO VM pipeline
+just iso-check-vm false
 ```
 
-CI policy:
+Verbose logs are controlled by the explicit boolean argument on each `just` command.
 
-- GitHub Actions eval workflow sets `EVAL_SCOPE=full` and `EVAL_SHOW_NIXOS_LOGS=false`.
-- GitHub Actions VM workflow sets `VM_SCOPE=full` and `VM_SHOW_NIXOS_LOGS=false`.
+#### ISO Artifact Build
+
+```bash
+just iso-build
+```
+
+The ISO artifact is copied into `build/`. The directory is ignored by Git and can
+be removed with:
+
+```bash
+just iso-cleanup
+```
 
 ### Writing New Tests
+
+ISO tests are organized by installer responsibility because the ISO is one vertical product, not a collection of NixOS modules.
+
+| ISO pipeline | Purpose | Location | Registration |
+|---|---|---|---|
+| Static | Static checks by responsibility | `tests/iso/static/<responsibility>/` | Add the responsibility aggregate in `tests/iso/static/default.nix` |
+| Unit | Pure shell tests by Clean Architecture layer | `tests/iso/unit/<layer>/` | Add the layer aggregate in `tests/iso/unit/default.nix` |
+| Integration | Use-case contract tests | `tests/iso/integration/<use-case>/` | Add the use-case aggregate in `tests/iso/integration/default.nix` |
+| Eval | NixOS ISO contracts by responsibility | `tests/iso/eval/<responsibility>/` | Add the responsibility aggregate in `tests/iso/eval/default.nix` |
+| VM | Runtime ISO checks | `tests/iso/vm/smoke` or `tests/iso/vm/install` | Add the runtime aggregate in `tests/iso/vm/default.nix` |
 
 Keep tests aligned with shared modules and add assertions at right level.
 
 | Level | Purpose | Location | Registration |
 |---|---|---|---|
-| Eval file-level (config invariants) | Validate `config.*` values without booting VM | `tests/eval/suites-file/<module>/<file>.nix` | Add output in `tests/eval/suites-file/<module>/default.nix` |
-| Eval module-level | Validate integrated behavior of one module entrypoint | `tests/eval/suites-module/module-<module>.nix` | Add output in `tests/eval/suites-module/default.nix` |
-| Eval full-stack | Validate cross-module config composition | `tests/eval/suites-full/stack-shared.nix` | Exported by `tests/eval/suites-full/default.nix` |
-| VM file-level | Validate runtime behavior for one shared file | `tests/vm/suites-file/<module>/<file>.nix` | Add output in `tests/vm/suites-file/<module>/default.nix` |
-| VM module-level | Validate integrated behavior of one module entrypoint | `tests/vm/suites-module/module-<module>.nix` | Add output in `tests/vm/suites-module/default.nix` |
-| VM full-stack | Validate cross-module composition | `tests/vm/suites-full/stack-shared.nix` | Exported by `tests/vm/suites-full/default.nix` |
+| Check file-level | Validate repository static analysis gates | `tests/shared-modules/check-code/suites-file/<check>.nix` | Add output in `tests/shared-modules/check-code/suites-file/default.nix` |
+| Check module-level | Validate module-level project surfaces | `tests/shared-modules/check-code/suites-module/<module>.nix` | Add output in `tests/shared-modules/check-code/suites-module/default.nix` |
+| Check full-project | Validate whole-project public flake surfaces | `tests/shared-modules/check-code/suites-full/project.nix` | Exported by `tests/shared-modules/check-code/suites-full/default.nix` |
+| Eval file-level (config invariants) | Validate `config.*` values without booting VM | `tests/shared-modules/eval/suites-file/<module>/<file>.nix` | Add output in `tests/shared-modules/eval/suites-file/<module>/default.nix` |
+| Eval module-level | Validate integrated behavior of one module entrypoint | `tests/shared-modules/eval/suites-module/module-<module>.nix` | Add output in `tests/shared-modules/eval/suites-module/default.nix` |
+| Eval full-stack | Validate cross-module config composition | `tests/shared-modules/eval/suites-full/stack-shared.nix` | Exported by `tests/shared-modules/eval/suites-full/default.nix` |
+| VM file-level | Validate runtime behavior for one shared file | `tests/shared-modules/vm/suites-file/<module>/<file>.nix` | Add output in `tests/shared-modules/vm/suites-file/<module>/default.nix` |
+| VM module-level | Validate integrated behavior of one module entrypoint | `tests/shared-modules/vm/suites-module/module-<module>.nix` | Add output in `tests/shared-modules/vm/suites-module/default.nix` |
+| VM full-stack | Validate cross-module composition | `tests/shared-modules/vm/suites-full/stack-shared.nix` | Exported by `tests/shared-modules/vm/suites-full/default.nix` |
 
 Authoring rules:
 
-1. Mirror module path 1:1 between `shared-modules/` and `tests/eval/suites-file` + `tests/vm/suites-file`.
+1. Mirror module path 1:1 between `shared-modules/` and `tests/shared-modules/eval/suites-file` + `tests/shared-modules/vm/suites-file`.
 2. Put per-file invariants in file-level tests first; add module/full tests only for integration invariants.
 3. Keep assertions explicit and stable: unique ID, clear name, severity, rationale.
 4. Reuse helpers, do not reimplement harnesses:
    - Eval: `testLib.getConfig`, `testLib.assert*`, `testLib.mkCheckScript`
+   - Shell: `tests/lib/shell/assertions.sh`
+   - VM: `tests/lib/vm/assertions.nix`
    - VM: `vmLib.mkVmTest`, `${vmLib.assertions.common}`, `assert_command(...)`
 5. Keep test-only boot/runtime helpers inside test modules only. Example: `vm-core-secrets` uses an initrd fixture service (`vmSopsFixtureKey`) only to inject deterministic test key material; do not copy that service into shared host modules.
 
 Quick templates:
 
 ```nix
-# tests/eval/suites-file/<module>/<file>.nix
+# tests/shared-modules/eval/suites-file/<module>/<file>.nix
 { pkgs, testLib }: let
-  config = testLib.getConfig { modules = [ ../../../../shared-modules/<module>/<file>.nix ]; };
+  config = testLib.getConfig { modules = [ ../../../../../shared-modules/<module>/<file>.nix ]; };
   assertions = [
     (testLib.assertEnabled {
       id = "<file>-001";
@@ -428,11 +457,11 @@ pkgs.runCommand "eval-<module>-<file>" {} (testLib.mkCheckScript {
 ```
 
 ```nix
-# tests/vm/suites-file/<module>/<file>.nix
+# tests/shared-modules/vm/suites-file/<module>/<file>.nix
 { vmLib }:
 vmLib.mkVmTest {
   name = "<module>-<file>";
-  nodeModules = [ ../../../../shared-modules/<module>/<file>.nix ];
+  nodeModules = [ ../../../../../shared-modules/<module>/<file>.nix ];
   testScript = ''
     ${vmLib.assertions.common}
     assert_command(
