@@ -25,8 +25,14 @@ jobs:
       - name: Cache Nix store
         uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Run check-eval entrypoint
+      - name: Run shared-modules eval tests
         env:
-          EVAL_SCOPE: full
-          EVAL_SHOW_NIXOS_LOGS: false
-        run: bash ./tests/local/scripts/check-eval.sh
+          SHARED_MODULES_EVAL_SCOPE: full
+          SHARED_MODULES_EVAL_TARGET: all
+          SHARED_MODULES_EVAL_SHOW_NIX_LOGS: false
+        run: bash ./tests/scripts/shared-modules/check-eval.sh
+
+      - name: Run ISO eval tests
+        env:
+          ISO_EVAL_SHOW_NIX_LOGS: false
+        run: bash ./tests/scripts/iso/check-eval.sh
