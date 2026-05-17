@@ -1,9 +1,9 @@
-result
-result-*
 /build/
-.direnv/
+/result
+/result-*
+/.direnv/
+/.git/
 
-.DS_Store
 *.log
 *.swp
 *.swo
