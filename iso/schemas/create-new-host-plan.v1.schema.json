@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "darksideos://iso/create-new-host-plan.v1",
+  "title": "DarksideOS Create New Host Installation Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "hostName",
+    "stateVersion",
+    "partitioning",
+    "modules",
+    "credentials",
+    "paths"
+  ],
+  "properties": {
+    "hostName": {
+      "type": "string",
+      "pattern": "^[a-z]([a-z0-9-]*[a-z0-9])?$"
+    },
+    "stateVersion": {
+      "type": "string",
+      "pattern": "^[0-9]{2}\\.[0-9]{2}$"
+    },
+    "partitioning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "layout", "disk"],
+      "properties": {
+        "method": {
+          "const": "automatic"
+        },
+        "layout": {
+          "const": "root-on-ram-ssd-encrypt"
+        },
+        "disk": {
+          "type": "string",
+          "pattern": "^/dev/disk/by-id/.+"
+        }
+      }
+    },
+    "modules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shared", "hardware"],
+      "properties": {
+        "shared": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "hardware": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._-]+\\.nix$"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "credentials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["luksPasswordRequired", "mainUserPasswordRequired"],
+      "properties": {
+        "luksPasswordRequired": {
+          "type": "boolean"
+        },
+        "mainUserPasswordRequired": {
+          "const": true
+        }
+      }
+    },
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "persistentRepositoryPath",
+        "persistentSopsAgeKeyFile",
+        "nixosInstallRoot"
+      ],
+      "properties": {
+        "persistentRepositoryPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "persistentSopsAgeKeyFile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nixosInstallRoot": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
