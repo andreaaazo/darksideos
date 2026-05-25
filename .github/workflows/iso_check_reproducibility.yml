@@ -1,0 +1,31 @@
+name: ISO Reproducibility Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly Sunday 04:00 UTC: catches reproducibility regressions out of band.
+    - cron: "0 4 * * 0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  iso-check-reproducibility:
+    name: ISO Reproducibility Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Run ISO reproducibility check
+        run: bash ./scripts/iso/check-reproducibility.sh
