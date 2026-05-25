@@ -1,20 +1,35 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # Usage: ./smart_resize.sh x y
 # Example: ./smart_resize.sh 40 0
-DX=$1
-DY=$2
+DX=${1:-}
+DY=${2:-}
+
+if [[ -z "$DX" || -z "$DY" ]]; then
+  echo "Usage: $(basename "$0") <delta_x> <delta_y>" >&2
+  exit 2
+fi
 
 # 1. Read outer gap settings.
 JSON=$(hyprctl getoption general:gaps_out -j)
 CUSTOM_STR=$(echo "$JSON" | jq -r '.custom')
-read -ra G_ARR <<< "$CUSTOM_STR"
+# `read` returns 1 on an empty input under `set -e`; absorb so the scalar
+# fallback branch below can run.
+G_ARR=()
+read -ra G_ARR <<< "$CUSTOM_STR" || true
 if [[ ${#G_ARR[@]} -eq 4 ]]; then
-    G_TOP=${G_ARR[0]}; G_RIGHT=${G_ARR[1]}; G_BOTTOM=${G_ARR[2]}; G_LEFT=${G_ARR[3]}
+  G_TOP=${G_ARR[0]}
+  G_RIGHT=${G_ARR[1]}
+  G_BOTTOM=${G_ARR[2]}
+  G_LEFT=${G_ARR[3]}
 else
-    VAL=$(echo "$JSON" | jq -r '.int')
-    [[ -z "$VAL" || "$VAL" == "null" ]] && VAL=16
-    G_TOP=$VAL; G_RIGHT=$VAL; G_BOTTOM=$VAL; G_LEFT=$VAL
+  VAL=$(echo "$JSON" | jq -r '.int')
+  if [[ -z "$VAL" || "$VAL" == "null" ]]; then VAL=16; fi
+  G_TOP=$VAL
+  G_RIGHT=$VAL
+  G_BOTTOM=$VAL
+  G_LEFT=$VAL
 fi
 
 # 2. Read active window state.
@@ -23,14 +38,14 @@ IS_FLOATING=$(echo "$WINDOW" | jq -r '.floating')
 
 # Tiled windows use native resize.
 if [ "$IS_FLOATING" != "true" ]; then
-    hyprctl dispatch resizeactive "$DX" "$DY"
-    exit 0
+  hyprctl dispatch resizeactive "$DX" "$DY"
+  exit 0
 fi
 
 # 3. Absolute anchor correction.
 # Recompute exact target coordinates from monitor bounds to remove drift.
 CMDS=$(hyprctl monitors -j | jq -r --argjson w "$WINDOW" --arg dx "$DX" --arg dy "$DY" \
-    --arg gt "$G_TOP" --arg gr "$G_RIGHT" --arg gb "$G_BOTTOM" --arg gl "$G_LEFT" '
+  --arg gt "$G_TOP" --arg gr "$G_RIGHT" --arg gb "$G_BOTTOM" --arg gl "$G_LEFT" '
     .[] | select(.focused) |
     
     # --- Focused monitor dimensions (constants) ---
@@ -108,5 +123,5 @@ CMDS=$(hyprctl monitors -j | jq -r --argjson w "$WINDOW" --arg dx "$DX" --arg dy
 
 # Execute as one batch to avoid flicker.
 if [[ -n "$CMDS" ]]; then
-    hyprctl --batch "$CMDS"
+  hyprctl --batch "$CMDS"
 fi
