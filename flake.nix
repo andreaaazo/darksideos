@@ -128,6 +128,11 @@
       inherit self;
     };
 
+    sharedModuleUnitTests = optionalImport ./tests/shared-modules/unit {
+      pkgs = pkgsLinux;
+      inherit self;
+    };
+
     isoIntegrationTests = optionalImport ./tests/iso/integration {
       pkgs = pkgsLinux;
       inherit self;
@@ -149,6 +154,22 @@
       pkgs = pkgsLinux;
       inherit self;
       inherit (nixpkgs) lib;
+      system = linuxSystem;
+    };
+
+    # Closure-size budget checks. Heavy: they realize full system closures, so
+    # they live outside the fast eval pipeline and run via `just check-budget`.
+    budgetChecks = optionalImport ./tests/budget {
+      pkgs = pkgsLinux;
+      inherit (nixpkgs) lib;
+      inherit
+        self
+        nixpkgs
+        home-manager
+        impermanence
+        sopsNix
+        zenBrowser
+        ;
       system = linuxSystem;
     };
 
@@ -178,7 +199,7 @@
     checks.${linuxSystem} = sharedModuleChecks // isoStaticChecks;
 
     # Unit tests: fast shell-level tests with no NixOS, Disko, SOPS, root, or VM dependency.
-    unitTests.${linuxSystem} = isoUnitTests;
+    unitTests.${linuxSystem} = isoUnitTests // sharedModuleUnitTests;
 
     # Integration tests: contract-level installer tests with destructive adapters stubbed.
     integrationTests.${linuxSystem} = isoIntegrationTests;
@@ -190,6 +211,9 @@
     # VM tests: boot a headless machine and validate runtime behavior.
     # Linux-only (runNixOSTest is Linux-only).
     vmTests.${linuxSystem} = sharedModuleVmTests // isoVmTests;
+
+    # Closure-size budgets: heavy build checks, run via `just check-budget`.
+    budgetChecks.${linuxSystem} = budgetChecks;
 
     packages.${linuxSystem}.darksideos-installer-iso =
       self.nixosConfigurations.darksideos-installer.config.system.build.isoImage;
