@@ -5,6 +5,7 @@
 }: let
   tests = {
     check-iso-json-schema = import ./json-schema.nix {inherit pkgs self;};
+    check-iso-schema-roundtrip = import ./roundtrip.nix {inherit pkgs self;};
   };
 in
   tests
