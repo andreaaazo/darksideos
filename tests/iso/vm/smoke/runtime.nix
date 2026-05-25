@@ -12,6 +12,7 @@ in
       import os
 
       ${vmLib.assertions.common}
+      ${vmLib.assertions.bootUserspaceBudget}
 
       if os.system("${vmLib.qemuImg} create -f qcow2 ${smokeDisk} 1024M") != 0:
           raise RuntimeError("could not create smoke disk image")
@@ -68,6 +69,12 @@ in
           "failed_units=$(systemctl list-units --failed --plain --no-legend --all); if [ -n \"$failed_units\" ]; then printf '%s\\n' \"$failed_units\" >&2; exit 1; fi",
           severity="critical",
           rationale="The live ISO must boot cleanly before installation is attempted.",
+      )
+      assert_userspace_budget(
+          "vm-iso-smoke-008",
+          30.0,
+          severity="medium",
+          rationale="Live ISO must reach the installer prompt promptly; regressions slow every install attempt.",
       )
 
       machine.shutdown()

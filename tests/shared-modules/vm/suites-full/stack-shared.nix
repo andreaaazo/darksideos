@@ -40,6 +40,7 @@ vmLib.mkVmTest {
 
   testScript = ''
     ${vmLib.assertions.common}
+    ${vmLib.assertions.bootUserspaceBudget}
 
     assert_command(
         "vm-stack-shared-001",
@@ -124,6 +125,33 @@ vmLib.mkVmTest {
         "test -f /etc/systemd/system/etc-nixos.mount && grep -Fx 'What=/persist/etc/nixos' /etc/systemd/system/etc-nixos.mount >/dev/null && grep -Fx 'Where=/etc/nixos' /etc/systemd/system/etc-nixos.mount >/dev/null",
         severity="high",
         rationale="Integrated stack should preserve flake source tree path across reboots on tmpfs root",
+    )
+    assert_command(
+        "vm-stack-shared-013",
+        "nftables service is active at runtime",
+        "systemctl is-active nftables.service",
+        severity="critical",
+        rationale="Firewall is only enforced when the nftables service has applied the ruleset.",
+    )
+    assert_command(
+        "vm-stack-shared-014",
+        "nftables ruleset enforces a default-drop input policy",
+        "nft list ruleset | awk 'BEGIN{f=0} /chain (input|nixos-fw)/{f=1} /^[[:space:]]*}/{f=0} f && /policy drop/' | grep -F 'policy drop'",
+        severity="critical",
+        rationale="Effective firewall must declare drop policy on the input chain, not just `firewall.enable=true`.",
+    )
+    assert_command(
+        "vm-stack-shared-015",
+        "nftables ruleset rejects unexpected TCP ports by default",
+        "sh -c 'set -e; output=$(nft -t list ruleset 2>&1); echo \"$output\" | grep -F \"policy drop\" >/dev/null; ! echo \"$output\" | grep -Eq \"tcp dport (22|23|3389|5900)( |$)\" || (echo \"unexpected open service port\" >&2; exit 1)'",
+        severity="high",
+        rationale="Default ruleset must not implicitly open remote-admin ports (ssh, telnet, rdp, vnc).",
+    )
+    assert_userspace_budget(
+        "vm-stack-shared-016",
+        25.0,
+        severity="high",
+        rationale="Full integrated stack boot regressions surface here before they reach hosts.",
     )
   '';
 }

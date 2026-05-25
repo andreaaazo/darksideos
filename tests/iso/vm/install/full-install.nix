@@ -18,6 +18,7 @@ in
       import subprocess
 
       ${vmLib.assertions.common}
+      ${vmLib.assertions.bootUserspaceBudget}
 
       work_dir = os.environ["NIX_BUILD_TOP"]
       target_disk_image = os.path.join(work_dir, "darksideos-install-target.qcow2")
@@ -236,6 +237,12 @@ in
           "nixos-rebuild dry-build --flake path:/etc/nixos#${hostName} --no-write-lock-file >/tmp/darksideos-rebuild.log 2>&1",
           severity="critical",
           rationale="The persistent flake must be able to evaluate and build the installed host after reboot.",
+      )
+      assert_userspace_budget(
+          "vm-iso-install-021",
+          25.0,
+          severity="high",
+          rationale="Installed host must boot within the full-stack budget on tmpfs root + LUKS.",
       )
 
       target.shutdown()
