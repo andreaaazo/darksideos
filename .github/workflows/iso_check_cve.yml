@@ -1,0 +1,33 @@
+name: ISO CVE Scan
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly Monday 06:00 UTC: catches new CVEs without blocking PRs.
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  iso-check-cve:
+    name: ISO CVE Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Run ISO CVE scan
+        env:
+          ISO_CVE_SHOW_NIX_LOGS: false
+        run: bash ./scripts/iso/check-cve.sh
