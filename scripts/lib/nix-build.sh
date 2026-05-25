@@ -83,7 +83,7 @@ print_relevant_log_lines() {
 
   strict_pattern="$(forbidden_log_pattern)"
 
-  grep -Ein "$strict_pattern|$output_pattern" "$log_file" || true
+  grep -En "$strict_pattern|$output_pattern" "$log_file" || true
 }
 
 assert_log_has_no_warnings_or_errors() {
@@ -93,9 +93,9 @@ assert_log_has_no_warnings_or_errors() {
 
   strict_pattern="$(forbidden_log_pattern)"
 
-  if grep -Eiq "$strict_pattern" "$log_file"; then
+  if grep -Eq "$strict_pattern" "$log_file"; then
     echo "[FAIL] ${test}: forbidden warning/error output detected" >&2
-    grep -Ein "$strict_pattern" "$log_file" >&2 || true
+    grep -En "$strict_pattern" "$log_file" >&2 || true
     exit 1
   fi
 }
