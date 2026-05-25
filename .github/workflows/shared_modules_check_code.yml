@@ -1,4 +1,4 @@
-name: Nix Eval Tests
+name: Shared Modules Code Check
 
 on:
   pull_request:
@@ -12,8 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  eval-tests:
-    name: Eval Tests
+  shared-modules-check-code:
+    name: Shared Modules Code Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -25,14 +25,9 @@ jobs:
       - name: Cache Nix store
         uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Run shared-modules eval tests
+      - name: Run shared-modules code checks
         env:
-          SHARED_MODULES_EVAL_SCOPE: full
-          SHARED_MODULES_EVAL_TARGET: all
-          SHARED_MODULES_EVAL_SHOW_NIX_LOGS: false
-        run: bash ./tests/scripts/shared-modules/check-eval.sh
-
-      - name: Run ISO eval tests
-        env:
-          ISO_EVAL_SHOW_NIX_LOGS: false
-        run: bash ./tests/scripts/iso/check-eval.sh
+          SHARED_MODULES_CHECK_SCOPE: full
+          SHARED_MODULES_CHECK_TARGET: all
+          SHARED_MODULES_CHECK_SHOW_NIX_LOGS: false
+        run: bash ./scripts/shared-modules/check-code.sh

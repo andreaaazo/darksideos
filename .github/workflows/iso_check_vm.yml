@@ -1,4 +1,4 @@
-name: Nix VM Tests
+name: ISO VM Check
 
 on:
   pull_request:
@@ -40,42 +40,15 @@ jobs:
             git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
             changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")"
 
-            if grep -E '^(iso/|shared-lib/disko/|flake\.nix$|tests/iso/vm/|tests/scripts/iso/check-vm\.sh$|\.github/workflows/nix_vm_tests\.yml$)' <<<"$changed_files" >/dev/null; then
+            if grep -E '^(iso/|shared-lib/disko/|flake\.nix$|tests/iso/vm/|scripts/iso/check-vm\.sh$|scripts/lib/nix-build\.sh$|\.github/workflows/iso_check_vm\.yml$)' <<<"$changed_files" >/dev/null; then
               should_run=true
             fi
           fi
 
           echo "should-run=${should_run}" >>"$GITHUB_OUTPUT"
 
-  shared-module-vm-tests:
-    name: Shared Module VM Tests
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v22
-
-      - name: Cache Nix store
-        uses: DeterminateSystems/magic-nix-cache-action@main
-
-      - name: Enable KVM access
-        run: |
-          if [[ -e /dev/kvm ]]; then
-            sudo chmod 666 /dev/kvm
-          fi
-
-      - name: Run shared module VM tests
-        env:
-          SHARED_MODULES_VM_SCOPE: full
-          SHARED_MODULES_VM_TARGET: all
-          SHARED_MODULES_VM_SHOW_NIXOS_LOGS: false
-        run: bash ./tests/scripts/shared-modules/check-vm.sh
-
-  iso-vm-tests:
-    name: ISO VM Tests
+  iso-check-vm:
+    name: ISO VM Check
     runs-on: ubuntu-latest
     needs: detect-iso-vm-changes
     if: needs.detect-iso-vm-changes.outputs.should-run == 'true'
@@ -95,7 +68,7 @@ jobs:
             sudo chmod 666 /dev/kvm
           fi
 
-      - name: Run ISO VM tests
+      - name: Run ISO VM checks
         env:
           ISO_VM_SHOW_NIXOS_LOGS: false
-        run: bash ./tests/scripts/iso/check-vm.sh
+        run: bash ./scripts/iso/check-vm.sh

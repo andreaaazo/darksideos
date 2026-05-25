@@ -1,0 +1,33 @@
+name: Shared Modules Eval Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  shared-modules-check-eval:
+    name: Shared Modules Eval Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Run shared-modules eval checks
+        env:
+          SHARED_MODULES_EVAL_SCOPE: full
+          SHARED_MODULES_EVAL_TARGET: all
+          SHARED_MODULES_EVAL_SHOW_NIX_LOGS: false
+        run: bash ./scripts/shared-modules/check-eval.sh

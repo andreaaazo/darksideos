@@ -1,4 +1,4 @@
-name: Nix Code Check
+name: ISO Eval Check
 
 on:
   pull_request:
@@ -12,8 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  nix-checks:
-    name: Nix Code Check
+  iso-check-eval:
+    name: ISO Eval Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -25,14 +25,7 @@ jobs:
       - name: Cache Nix store
         uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Run shared-modules static checks
+      - name: Run ISO eval checks
         env:
-          SHARED_MODULES_CHECK_SCOPE: full
-          SHARED_MODULES_CHECK_TARGET: all
-          SHARED_MODULES_CHECK_SHOW_NIX_LOGS: false
-        run: bash ./tests/scripts/shared-modules/check-code.sh
-
-      - name: Run ISO static checks
-        env:
-          ISO_STATIC_SHOW_NIX_LOGS: false
-        run: bash ./tests/scripts/iso/check-static.sh
+          ISO_EVAL_SHOW_NIX_LOGS: false
+        run: bash ./scripts/iso/check-eval.sh

@@ -1,0 +1,39 @@
+name: Shared Modules VM Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  shared-modules-check-vm:
+    name: Shared Modules VM Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Enable KVM access
+        run: |
+          if [[ -e /dev/kvm ]]; then
+            sudo chmod 666 /dev/kvm
+          fi
+
+      - name: Run shared-modules VM checks
+        env:
+          SHARED_MODULES_VM_SCOPE: full
+          SHARED_MODULES_VM_TARGET: all
+          SHARED_MODULES_VM_SHOW_NIXOS_LOGS: false
+        run: bash ./scripts/shared-modules/check-vm.sh
