@@ -16,7 +16,7 @@ require_env() {
   local name="$1"
   local supported="$2"
 
-  if [[ ! -v "$name" || -z "${!name}" ]]; then
+  if [[ -z "${!name+x}" || -z "${!name}" ]]; then
     echo "${name} is required. Supported values: ${supported}." >&2
     exit 1
   fi

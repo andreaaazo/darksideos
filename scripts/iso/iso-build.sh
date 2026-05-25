@@ -26,7 +26,10 @@ if [[ ! -d "${OUT_LINK}/iso" ]]; then
   exit 1
 fi
 
-mapfile -t iso_files < <(find -L "${OUT_LINK}/iso" -maxdepth 1 -type f -name '*.iso' -print | sort)
+iso_files=()
+while IFS= read -r iso_path; do
+  iso_files+=("$iso_path")
+done < <(find -L "${OUT_LINK}/iso" -maxdepth 1 -type f -name '*.iso' -print | sort)
 
 if [[ "${#iso_files[@]}" -ne 1 ]]; then
   echo "Expected exactly one ISO artifact, found ${#iso_files[@]}." >&2
@@ -39,7 +42,7 @@ target_file="${BUILD_DIR}/$(basename "$iso_file")"
 temporary_file="${target_file}.tmp.$$"
 trap 'rm -f -- "$temporary_file"' EXIT
 
-if ! cp --reflink=auto -- "$iso_file" "$temporary_file" 2>/dev/null; then
+if ! cp --reflink=auto -- "$iso_file" "$temporary_file" 2> /dev/null; then
   cp -- "$iso_file" "$temporary_file"
 fi
 

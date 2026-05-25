@@ -9,7 +9,7 @@ set -euo pipefail
 require_command() {
   local command_name="$1"
 
-  if ! command -v "$command_name" >/dev/null 2>&1; then
+  if ! command -v "$command_name" > /dev/null 2>&1; then
     echo "Missing required formatter command: ${command_name}." >&2
     exit 1
   fi
@@ -19,10 +19,13 @@ require_command alejandra
 require_command prettier
 require_command shfmt
 
-mapfile -d "" shell_files < <(
+shell_files=()
+while IFS= read -r shell_file; do
+  shell_files+=("$shell_file")
+done < <(
   find iso/scripts scripts/iso tests/iso tests/lib/shell \
-    -type f -name '*.sh' -print0 |
-    sort -z
+    -type f -name '*.sh' -print |
+    sort
 )
 if [[ "${#shell_files[@]}" -gt 0 ]]; then
   shfmt -w -i 2 -ci -sr "${shell_files[@]}"
@@ -33,7 +36,10 @@ alejandra \
   tests/iso \
   tests/lib/nix
 
-mapfile -d "" prettier_files < <(find iso tests/iso -type f \( -name '*.json' -o -name '*.md' \) -print0 | sort -z)
+prettier_files=()
+while IFS= read -r prettier_file; do
+  prettier_files+=("$prettier_file")
+done < <(find iso tests/iso -type f \( -name '*.json' -o -name '*.md' \) -print | sort)
 if [[ "${#prettier_files[@]}" -gt 0 ]]; then
   prettier --write "${prettier_files[@]}"
 fi
