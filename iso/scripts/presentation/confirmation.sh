@@ -48,7 +48,7 @@ print_installation_summary() {
   printf '  Hardware module files: %s\n' "${hardware_modules:-none}" >&2
   printf '  Disk encryption password: %s\n' "$luks_password_collected" >&2
   printf '  Main user password: %s\n' "$main_user_password_collected" >&2
-  printf '\nWARNING: automatic partitioning will erase the selected disk.\n\n' >&2
+  printf '\nDestructive partitioning notice: automatic partitioning will erase the selected disk.\n\n' >&2
 }
 
 confirm_installation_plan() {
