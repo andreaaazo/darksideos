@@ -18,9 +18,17 @@ trap 'rm -rf "$work_dir"' EXIT
 
 stub_dir="${work_dir}/bin"
 install -d -m 0755 "$stub_dir"
-install -m 0755 "$stub_source" "${stub_dir}/hyprctl"
+{
+    printf '#!%s\n' "$(command -v bash)"
+    tail -n +2 "$stub_source"
+} > "${stub_dir}/hyprctl"
+chmod 0755 "${stub_dir}/hyprctl"
 
 export PATH="${stub_dir}:${PATH}"
+
+assert_not_contains "$(head -n 1 "${stub_dir}/hyprctl")" "/usr/bin/env" \
+    "hyprctl stub uses the derivation bash directly" \
+    "high" "Nix sandboxes are not required to provide /usr/bin/env."
 
 reset_stub() {
     export HYPRCTL_STUB_LOG="${work_dir}/stub.log"
