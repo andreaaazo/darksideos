@@ -1,0 +1,99 @@
+name: Publish Installer ISO
+
+on:
+  # Fires on merge into main (direct pushes to main are blocked by branch
+  # protection, so in practice this runs once per merged PR).
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  # Required to create the GitHub Release and upload the ISO asset.
+  contents: write
+
+concurrency:
+  group: publish-iso
+  cancel-in-progress: false
+
+jobs:
+  publish-iso:
+    name: Build and publish installer ISO
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build installer ISO
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          out_path="$(nix build --no-write-lock-file --no-link --print-out-paths \
+            "path:.#packages.x86_64-linux.darksideos-installer-iso")"
+
+          iso_source="$(find -L "${out_path}/iso" -maxdepth 1 -type f -name '*.iso' | sort | head -n1)"
+          if [[ -z "$iso_source" ]]; then
+            echo "No ISO artifact found under ${out_path}/iso" >&2
+            exit 1
+          fi
+
+          short_sha="${GITHUB_SHA::7}"
+          build_date="$(date -u +%Y%m%d)"
+          dist_dir="${RUNNER_TEMP}/iso-dist"
+          mkdir -p "$dist_dir"
+
+          iso_name="darksideos-installer-${build_date}-${short_sha}.iso"
+          cp --reflink=auto -- "$iso_source" "${dist_dir}/${iso_name}"
+
+          # Integrity manifest: lets downloaders verify the asset (zero-trust).
+          ( cd "$dist_dir" && sha256sum "$iso_name" > "SHA256SUMS" )
+
+          iso_bytes="$(stat -c %s "${dist_dir}/${iso_name}")"
+          iso_mib=$(( iso_bytes / 1024 / 1024 ))
+
+          {
+            echo "tag=installer-${build_date}-${short_sha}"
+            echo "iso_name=${iso_name}"
+            echo "dist_dir=${dist_dir}"
+            echo "iso_mib=${iso_mib}"
+          } >> "$GITHUB_OUTPUT"
+
+          # GitHub release assets are capped at 2 GiB per file.
+          if [[ "$iso_mib" -gt 2048 ]]; then
+            echo "::warning::ISO is ${iso_mib} MiB which exceeds the 2 GiB release asset limit; upload may fail."
+          fi
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ steps.build.outputs.tag }}"
+          dist_dir="${{ steps.build.outputs.dist_dir }}"
+
+          notes="$(printf '%s\n' \
+            "Automated DarksideOS installer ISO build." \
+            "" \
+            "- Commit: \`${GITHUB_SHA}\`" \
+            "- Size: ${{ steps.build.outputs.iso_mib }} MiB" \
+            "" \
+            "Verify integrity with \`sha256sum -c SHA256SUMS\`.")"
+
+          # Idempotent re-runs: replace the release if the tag already exists.
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release delete "$tag" --yes --cleanup-tag
+          fi
+
+          gh release create "$tag" \
+            "${dist_dir}/${{ steps.build.outputs.iso_name }}" \
+            "${dist_dir}/SHA256SUMS" \
+            --title "DarksideOS Installer ISO (${{ steps.build.outputs.tag }})" \
+            --notes "$notes" \
+            --latest
