@@ -308,7 +308,7 @@ After reboot, this path is available as `/etc/nixos` via impermanence bind mount
 - VM checks require `/dev/kvm` passthrough for reliable performance and timing-sensitive assertions.
 - Runtime tooling is isolated in the container environment; only repository files mounted in `/work` are modified when applicable.
 
-All local checks run through Docker to keep host systems clean. The `Justfile` is the only human entrypoint; each recipe calls a dedicated shell entrypoint under `tests/scripts/iso/` or `tests/scripts/shared-modules/`.
+All local checks run through Docker to keep host systems clean. The `Justfile` is the only human entrypoint; each recipe calls a dedicated shell entrypoint under `scripts/iso/` or `scripts/shared-modules/`.
 
 | Command | Purpose |
 |---|---|
