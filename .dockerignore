@@ -3,6 +3,7 @@
 /result-*
 /.direnv/
 /.git/
+/.agents/
 
 *.log
 *.swp
