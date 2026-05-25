@@ -80,5 +80,40 @@ vmLib.mkVmTest {
         severity="high",
         rationale="Standalone hyprpaper module should install binary into user profile",
     )
+    assert_command(
+        "vm-home-hyprland-010",
+        "hypr-window-move wrapper binary is installed in user profile",
+        "test -x /etc/profiles/per-user/andrea/bin/hypr-window-move",
+        severity="high",
+        rationale="Window-move wrapper must be present so the documented SUPER+SHIFT+H/J/K/L/C binds resolve at runtime.",
+    )
+    assert_command(
+        "vm-home-hyprland-011",
+        "hypr-window-resize wrapper binary is installed in user profile",
+        "test -x /etc/profiles/per-user/andrea/bin/hypr-window-resize",
+        severity="high",
+        rationale="Resize submap depends on the wrapper binary being present in the user profile.",
+    )
+    assert_command(
+        "vm-home-hyprland-012",
+        "hyprland.conf references hypr-window-move by nix-store path",
+        "sh -c 'f=/etc/profiles/per-user/andrea/etc/xdg/hypr/hyprland.conf; test -f \"$f\" || f=/home/andrea/.config/hypr/hyprland.conf; grep -E \"exec, /nix/store/[^ ]+/bin/hypr-window-move \" \"$f\" >/dev/null'",
+        severity="high",
+        rationale="Window-move binds must point at a deterministic nix-store path, not at $PATH lookup.",
+    )
+    assert_command(
+        "vm-home-hyprland-013",
+        "hyprland.conf references hypr-window-resize by nix-store path",
+        "sh -c 'f=/etc/profiles/per-user/andrea/etc/xdg/hypr/hyprland.conf; test -f \"$f\" || f=/home/andrea/.config/hypr/hyprland.conf; grep -E \"exec, /nix/store/[^ ]+/bin/hypr-window-resize \" \"$f\" >/dev/null'",
+        severity="high",
+        rationale="Resize submap binds must point at a deterministic nix-store path, not at $PATH lookup.",
+    )
+    assert_command(
+        "vm-home-hyprland-014",
+        "hypr-window-move wrapper carries jq in its PATH",
+        "sh -c 'p=$(readlink -f /etc/profiles/per-user/andrea/bin/hypr-window-move); grep -F \"makeBinPath\" \"$p\" >/dev/null || grep -F \"/bin/jq\" \"$p\" >/dev/null'",
+        severity="medium",
+        rationale="Wrapper depends on jq at runtime; PATH injection must be materialized in the store-installed script.",
+    )
   '';
 }
