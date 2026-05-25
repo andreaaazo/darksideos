@@ -3,7 +3,7 @@
 {pkgs, ...}: {
   imports = [
     # Disk layout
-    ./disk.nix
+    (import ./disk.nix {})
 
     # Hardware
     ./hardware-configuration.nix
@@ -28,6 +28,9 @@
     # Host-specific encrypted secret bundle tracked in git.
     defaultSopsFile = ./secrets/starkiller.yaml;
   };
+
+  # System state version — do NOT change after install.
+  system.stateVersion = "25.11";
 
   hardware = {
     nvidia = {

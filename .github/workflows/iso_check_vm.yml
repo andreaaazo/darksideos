@@ -1,0 +1,74 @@
+name: ISO VM Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-iso-vm-changes:
+    name: Detect ISO VM Changes
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.detect.outputs.should-run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect ISO VM changes
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          should_run=false
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ github.ref }}" == "refs/heads/main" ]]; then
+            should_run=true
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+            changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")"
+
+            if grep -E '^(iso/|shared-lib/disko/|flake\.nix$|tests/iso/vm/|scripts/iso/check-vm\.sh$|scripts/lib/nix-build\.sh$|\.github/workflows/iso_check_vm\.yml$)' <<<"$changed_files" >/dev/null; then
+              should_run=true
+            fi
+          fi
+
+          echo "should-run=${should_run}" >>"$GITHUB_OUTPUT"
+
+  iso-check-vm:
+    name: ISO VM Check
+    runs-on: ubuntu-latest
+    needs: detect-iso-vm-changes
+    if: needs.detect-iso-vm-changes.outputs.should-run == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Enable KVM access
+        run: |
+          if [[ -e /dev/kvm ]]; then
+            sudo chmod 666 /dev/kvm
+          fi
+
+      - name: Run ISO VM checks
+        env:
+          ISO_VM_SHOW_NIXOS_LOGS: false
+        run: bash ./scripts/iso/check-vm.sh

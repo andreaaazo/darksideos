@@ -1,0 +1,33 @@
+name: Shared Modules Code Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  shared-modules-check-code:
+    name: Shared Modules Code Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Run shared-modules code checks
+        env:
+          SHARED_MODULES_CHECK_SCOPE: full
+          SHARED_MODULES_CHECK_TARGET: all
+          SHARED_MODULES_CHECK_SHOW_NIX_LOGS: false
+        run: bash ./scripts/shared-modules/check-code.sh

@@ -1,0 +1,33 @@
+name: Closure Budget Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly Saturday 05:00 UTC: track closure growth out of the PR path.
+    - cron: "0 5 * * 6"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  check-budget:
+    name: Closure Budget Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Run closure budget checks
+        env:
+          REPO_BUDGET_SHOW_NIX_LOGS: false
+        run: bash ./scripts/repo/check-budget.sh

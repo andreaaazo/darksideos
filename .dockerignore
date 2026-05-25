@@ -1,0 +1,12 @@
+/build/
+/result
+/result-*
+/.direnv/
+/.git/
+/.agents/
+
+*.log
+*.swp
+*.swo
+*.bak
+*.tmp

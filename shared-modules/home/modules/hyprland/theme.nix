@@ -53,9 +53,6 @@
         # SHADOW SOFTNESS
         # Higher values create softer shadows
         render_power = 4;
-        # SHADOW EXCLUSIONS
-        # Prevents self-shadow artifacts on the focused window to keep edges crisp
-        ignore_window = true;
       };
 
       # BLUR SETTINGS
