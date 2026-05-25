@@ -21,7 +21,6 @@ target="$SHARED_MODULES_VM_TARGET"
 show_nix_logs="$SHARED_MODULES_VM_SHOW_NIXOS_LOGS"
 attr_set="vmTests.x86_64-linux"
 output_pattern='\[PASS\]|\[FAIL\]|(Expected|Actual|Severity|Rationale):'
-NIX_BUILD_EXTRA_ARGS=(--option system-features "benchmark big-parallel nixos-test kvm uid-range")
 
 require_boolean SHARED_MODULES_VM_SHOW_NIXOS_LOGS "$show_nix_logs"
 

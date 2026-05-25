@@ -12,7 +12,6 @@ require_env ISO_VM_SHOW_NIXOS_LOGS "true, false"
 show_nix_logs="$ISO_VM_SHOW_NIXOS_LOGS"
 attr_set="vmTests.x86_64-linux"
 output_pattern='\[PASS\]|\[FAIL\]|(Expected|Actual|Severity|Rationale):'
-NIX_BUILD_EXTRA_ARGS=(--option system-features "benchmark big-parallel nixos-test kvm uid-range")
 
 require_boolean ISO_VM_SHOW_NIXOS_LOGS "$show_nix_logs"
 
